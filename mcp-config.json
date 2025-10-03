@@ -1,0 +1,17 @@
+{
+  "mcpProxy": {
+    "addr": ":9090",
+    "baseURL": "http://localhost:9090",
+    "name": "Agiletec MCP Proxy",
+    "version": "1.0.0",
+    "type": "sse"
+  },
+  "mcpServers": {
+    "context7": {
+      "url": "http://docker-mcp-context7-1:3000/sse"
+    }
+  },
+  "log": {
+    "level": "debug"
+  }
+}

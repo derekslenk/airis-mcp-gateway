@@ -15,5 +15,5 @@ context7/
 # Memory storage
 claude-memory/
 
-# Claude Code configuration
-CLAUDE.md
+# Claude Code configuration (keep this repo focused on MCP servers)
+# CLAUDE.md is for individual project instructions

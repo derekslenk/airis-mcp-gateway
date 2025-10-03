@@ -1,71 +1,7 @@
 {
   "mcpServers": {
-    "context7": {
-      "url": "http://localhost:3007/mcp",
-      "transport": "http"
-    },
-    "fetch": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "mcp/fetch"
-      ]
-    },
-    "filesystem": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-    "--mount", "type=bind,src=/Users/kazuki/github,dst=/Users/kazuki/github",
-    "--mount", "type=bind,src=/Users/kazuki/マイドライブ,dst=/Users/kazuki/マイドライブ",
-    "--mount", "type=bind,src=/Users/kazuki/マイドライブ（kazuki.nakai@agiletec.net）,dst=/Users/kazuki/マイドライブ（kazuki.nakai@agiletec.net）",
-    "mcp/filesystem",
-    "/Users/kazuki"
-  ]
-},
-    "git": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "--mount",
-        "type=bind,src=/Users/kazuki/github,dst=/Users/kazuki/github",
-        "mcp/git"
-      ]
-    },
-    "memory": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-v",
-        "claude-memory:/app/dist",
-        "mcp/memory"
-      ]
-    },
-    "sequentialthinking": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "mcp/sequentialthinking"
-      ]
-    },
-    "time": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "mcp/time"
-      ]
+    "docker-mcp-gateway": {
+      "url": "http://localhost:9090/sse"
     }
-  },
-  "globalShortcut": ""
+  }
 }
