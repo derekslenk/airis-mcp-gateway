@@ -2,7 +2,8 @@
 *.log
 *.tmp
 .env
-.env.local
+.env.*
+!.env.example
 .DS_Store
 
 # Docker volumes
@@ -14,6 +15,9 @@ context7/
 
 # Memory storage
 claude-memory/
+
+# Original repos (nested git repositories)
+original-repos/
 
 # Claude Code configuration (keep this repo focused on MCP servers)
 # CLAUDE.md is for individual project instructions

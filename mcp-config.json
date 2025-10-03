@@ -9,6 +9,27 @@
   "mcpServers": {
     "context7": {
       "url": "http://docker-mcp-context7-1:3000/sse"
+    },
+    "stripe": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "STRIPE_SECRET_KEY=$(cat /run/secrets/stripe_key) npx -y @stripe/mcp --tools=all"
+      ]
+    },
+    "twilio": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "TWILIO_ACCOUNT_SID=$(cat /run/secrets/twilio_sid) TWILIO_API_KEY=$(cat /run/secrets/twilio_key) TWILIO_API_SECRET=$(cat /run/secrets/twilio_secret) npx -y @twilio-alpha/mcp"
+      ]
+    },
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena-mcp-server"
+      ]
     }
   },
   "log": {

@@ -55,14 +55,35 @@ make info
 
 ## 🔧 Configuration
 
-### Environment Variables
+### 🔐 Secrets Management (Recommended)
 
-Copy `.env.example` to `.env` and fill in your API keys:
+Use Docker MCP secret store for secure API key management:
 
 ```bash
-cp .env.example .env
-# Edit .env with your actual keys
+# Setup secrets (one-time)
+docker mcp secret set STRIPE_API_KEY=sk_...
+docker mcp secret set TWILIO_ACCOUNT_SID=AC...
+docker mcp secret set TWILIO_API_KEY=SK...
+docker mcp secret set TWILIO_API_SECRET=...
+
+# List secrets
+docker mcp secret ls
+
+# Remove secrets
+docker mcp secret rm STRIPE_API_KEY
 ```
+
+**Security Benefits**:
+- ✅ Encrypted at rest in Docker Desktop
+- ✅ Never stored in Git
+- ✅ Runtime injection only
+- ✅ OrbStack compatible
+
+See [SECRETS.md](./SECRETS.md) for details.
+
+### ⚠️ Environment Variables (Deprecated)
+
+**Not recommended** - Use `docker mcp secret` instead.
 
 ### Client Configuration
 
