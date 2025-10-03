@@ -1,0 +1,19 @@
+# MCP sensitive data
+*.log
+*.tmp
+.env
+.env.local
+.DS_Store
+
+# Docker volumes
+data/
+logs/
+
+# Context7 specific
+context7/
+
+# Memory storage
+claude-memory/
+
+# Claude Code configuration
+CLAUDE.md

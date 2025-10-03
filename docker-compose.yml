@@ -1,0 +1,109 @@
+name: docker-mcp
+
+services:
+  # MCP Gateway - すべてのサービスを統合するエントリーポイント
+  # gateway:
+  #   build:
+  #     context: ./gateway
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8765:8765"
+  #   networks:
+  #     - mcp-network
+  #   environment:
+  #     - NODE_ENV=production
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   depends_on:
+  #     - context7
+  #     - fetch
+  #     - filesystem
+  #     - git
+  #     - memory
+  #     - sequentialthinking
+  #     - time
+
+  # Context7 サービス（プロキシ経由でWebサービスに接続）
+  context7:
+    build:
+      context: ./context7
+      dockerfile: Dockerfile
+    ports:
+      - "3007:3000"
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+    environment:
+      - NODE_ENV=production
+
+  # Fetch サービス - server-fetchから実行  
+  fetch:
+    image: node:20-slim
+    command: npx @modelcontextprotocol/server-fetch
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+  # Filesystem サービス - npmパッケージから実行
+  filesystem:
+    image: node:20-slim
+    command: npx @modelcontextprotocol/server-filesystem /Users/kazuki
+    stdin_open: true
+    tty: true
+    volumes:
+      - /Users/kazuki/github:/Users/kazuki/github:ro
+      - /Users/kazuki/マイドライブ:/Users/kazuki/マイドライブ:ro
+      - /Users/kazuki/マイドライブ（kazuki.nakai@agiletec.net）:/Users/kazuki/マイドライブ（kazuki.nakai@agiletec.net）:ro
+    networks:
+      - mcp-network
+
+  # Git サービス - server-gitから実行
+  git:
+    image: node:20-slim
+    working_dir: /workspace
+    command: sh -c "apt-get update && apt-get install -y git && npx @modelcontextprotocol/server-git /workspace/github"
+    stdin_open: true
+    tty: true
+    volumes:
+      - /Users/kazuki/github:/workspace/github:ro
+    networks:
+      - mcp-network
+
+  # Memory サービス - npmパッケージから実行
+  memory:
+    image: node:20-slim
+    command: npx @modelcontextprotocol/server-memory
+    stdin_open: true
+    tty: true
+    volumes:
+      - claude-memory:/app/memory
+    networks:
+      - mcp-network
+
+  # Sequential Thinking サービス - npmパッケージから実行
+  sequentialthinking:
+    image: node:20-slim
+    command: npx @modelcontextprotocol/server-sequential-thinking
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+  # Time サービス - server-timeから実行
+  time:
+    image: node:20-slim
+    command: npx @modelcontextprotocol/server-time
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  claude-memory:
+    driver: local
