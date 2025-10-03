@@ -11,7 +11,7 @@ services:
       - run
       - --transport=sse
       - --port=9090
-      - --servers=time,fetch,filesystem,git,memory,sequentialthinking
+      - --servers=time,fetch,git,memory,sequentialthinking
     ports:
       - "9090:9090"
     volumes:
@@ -19,6 +19,8 @@ services:
       - /Users/kazuki/github:/workspace/github:rw
       - claude-memory:/app/memory
       - ./mcp-config.json:/etc/docker-mcp/config.json:ro
+    environment:
+      - DOCKER_MCP_SERVERS=time,fetch,git,memory,sequentialthinking
     labels:
       - "x-secret:STRIPE_API_KEY=/run/secrets/stripe_key"
       - "x-secret:TWILIO_ACCOUNT_SID=/run/secrets/twilio_sid"
