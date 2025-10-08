@@ -1,10 +1,41 @@
 {
   "mcpServers": {
     "docker-mcp-gateway": {
-      "url": "http://localhost:9090/sse"
+      "url": "http://localhost:9090/sse",
+      "description": "Unified MCP Gateway (time, fetch, git, memory, sequentialthinking)"
     },
     "context7": {
-      "url": "http://localhost:3000/sse"
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "description": "Library documentation search"
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-postgres-server",
+        "--dsn",
+        "${POSTGRES_CONNECTION_STRING:-postgresql://mcp_readonly:mcp_readonly_password@localhost:5432/postgres}"
+      ],
+      "description": "Supabase PostgreSQL access"
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp", "--tools=all"],
+      "env": {
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+      },
+      "description": "Stripe payment integration"
+    },
+    "twilio": {
+      "command": "npx",
+      "args": ["-y", "@twilio-alpha/mcp"],
+      "env": {
+        "TWILIO_ACCOUNT_SID": "${TWILIO_ACCOUNT_SID}",
+        "TWILIO_API_KEY": "${TWILIO_API_KEY}",
+        "TWILIO_API_SECRET": "${TWILIO_API_SECRET}"
+      },
+      "description": "Twilio phone/SMS integration"
     }
   }
 }

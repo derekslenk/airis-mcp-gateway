@@ -6,12 +6,21 @@ Centralized Model Context Protocol (MCP) server infrastructure for all projects.
 
 ```
 Claude Code (any project)
-    ↓ stdio/SSE
-~/.claude/mcp.json (symlink)
     ↓
-http://localhost:9090 (MCP Proxy)
+~/github/docker-mcp-gateway/mcp.json (Git-managed)
     ↓
-17 MCP Servers (Docker containers)
+Gateway (http://localhost:9090/sse)
+│   ├─ time
+│   ├─ fetch
+│   ├─ git
+│   ├─ memory
+│   └─ sequentialthinking
+│
+└─ npx Direct Launch (4 servers)
+    ├─ context7 (library docs)
+    ├─ supabase (PostgreSQL)
+    ├─ stripe (payments)
+    └─ twilio (phone/SMS)
 ```
 
 ## 🚀 Quick Start
@@ -30,28 +39,24 @@ make logs
 make info
 ```
 
-## 📦 Available MCP Servers
+## 📦 Available MCP Servers (9 Total)
 
-| Server | Description | Type |
-|--------|-------------|------|
-| context7 | Library documentation | SSE |
-| time | Current time/date | stdio |
-| fetch | Web content fetching | stdio |
-| memory | Persistent storage | stdio |
-| filesystem | File operations | stdio |
-| git | Git operations | stdio |
-| sequential-thinking | Complex reasoning | stdio |
-| supabase | PostgreSQL database | stdio |
-| serena | Code analysis | stdio |
-| stripe | Payment APIs | stdio (requires key) |
-| brave-search | Web search | stdio (requires key) |
-| puppeteer | Browser automation | stdio |
-| slack | Slack APIs | stdio (requires tokens) |
-| google-drive | Drive operations | stdio (requires OAuth) |
-| twilio | Voice/SMS APIs | stdio (requires keys) |
-| github | GitHub APIs | stdio (requires token) |
-| aws | AWS services | stdio (requires keys) |
-| azure | Azure services | stdio (requires keys) |
+### Gateway Servers (5) - Via http://localhost:9090/sse
+| Server | Description |
+|--------|-------------|
+| time | Current time/date |
+| fetch | Web content fetching |
+| git | Git operations |
+| memory | Persistent storage |
+| sequentialthinking | Complex reasoning |
+
+### Direct Launch Servers (4) - Via npx
+| Server | Description | Requires |
+|--------|-------------|----------|
+| context7 | Library documentation search | - |
+| supabase | PostgreSQL database access | Connection string |
+| stripe | Payment APIs | `STRIPE_SECRET_KEY` |
+| twilio | Voice/SMS APIs | Account SID + API keys |
 
 ## 🔧 Configuration
 
@@ -144,16 +149,18 @@ docker-mcp-gateway/
 
 ## 🐛 Troubleshooting
 
-**Proxy not starting:**
+**Gateway not starting:**
 ```bash
-docker logs mcp-proxy
+docker logs docker-mcp-gateway
 ```
 
 **Individual server issues:**
+Check Gateway logs (includes all 5 Gateway servers):
 ```bash
-make logs-context7
-make logs-supabase
+make logs
 ```
+
+npx servers (context7, supabase, stripe, twilio) log to Claude Code console.
 
 **Clean restart:**
 ```bash
