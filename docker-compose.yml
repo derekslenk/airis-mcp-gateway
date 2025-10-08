@@ -1,17 +1,17 @@
-name: docker-mcp
+name: docker-mcp-gateway
 
 services:
   # Docker MCP Gateway - すべてのMCPサーバーを統合
   mcp-gateway:
     image: docker/mcp-gateway:latest
-    container_name: mcp-gateway
+    container_name: docker-mcp-gateway
     entrypoint: ["/docker-mcp"]
     command:
       - gateway
       - run
       - --transport=sse
       - --port=9090
-      - --servers=time,fetch,git,memory,sequentialthinking
+      - --servers=time,fetch,git,memory,sequentialthinking,context7,supabase,serena,stripe,twilio
     ports:
       - "9090:9090"
     volumes:
@@ -37,7 +37,7 @@ services:
   # Context7 - Library Documentation Server
   context7:
     build: ./context7
-    container_name: docker-mcp-context7-1
+    container_name: docker-mcp-gateway-context7
     ports:
       - "3000:3000"
     restart: unless-stopped

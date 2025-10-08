@@ -1,14 +1,14 @@
 {
-  "mcpProxy": {
+  "mcpGateway": {
     "addr": ":9090",
     "baseURL": "http://localhost:9090",
-    "name": "Agiletec MCP Proxy",
+    "name": "Docker MCP Gateway",
     "version": "1.0.0",
     "type": "sse"
   },
   "mcpServers": {
     "context7": {
-      "url": "http://docker-mcp-context7-1:3000/sse"
+      "url": "http://docker-mcp-gateway-context7:3000/sse"
     },
     "stripe": {
       "command": "bash",
@@ -29,6 +29,15 @@
       "args": [
         "--from", "git+https://github.com/oraios/serena",
         "serena-mcp-server"
+      ]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-postgres-server",
+        "--dsn",
+        "${POSTGRES_CONNECTION_STRING:-postgresql://mcp_readonly:mcp_readonly_password@localhost:5432/postgres}"
       ]
     }
   },

@@ -2,6 +2,9 @@
   "mcpServers": {
     "docker-mcp-gateway": {
       "url": "http://localhost:9090/sse"
+    },
+    "context7": {
+      "url": "http://localhost:3000/sse"
     }
   }
 }

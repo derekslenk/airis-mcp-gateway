@@ -1,4 +1,4 @@
-# Docker MCP - Global MCP Server Management
+# Docker MCP Gateway - Global MCP Server Management
 
 Centralized Model Context Protocol (MCP) server infrastructure for all projects.
 
@@ -91,12 +91,12 @@ The proxy is accessible at `http://localhost:9090`.
 
 **Global config** (recommended):
 ```bash
-~/.claude/mcp.json → github/docker-mcp/mcp.json (symlink)
+~/.claude/mcp.json → github/docker-mcp-gateway/mcp.json (symlink)
 ```
 
 **Per-project config** (optional):
 ```bash
-~/github/agiletec/mcp.json → github/docker-mcp/mcp.json (symlink)
+~/github/agiletec/mcp.json → github/docker-mcp-gateway/mcp.json (symlink)
 ```
 
 ### Adding New MCP Servers
@@ -131,7 +131,7 @@ make restart
 ## 📁 File Structure
 
 ```
-docker-mcp/
+docker-mcp-gateway/
 ├── docker-compose.yml      # All services (servers + proxy)
 ├── mcp-config.json         # Proxy configuration (17 servers)
 ├── mcp.json                # Claude Code client config
@@ -168,7 +168,7 @@ make ps
 
 ## 🌐 Usage from Projects
 
-All projects using the symlink automatically get updates when you modify `docker-mcp/mcp.json`.
+All projects using the symlink automatically get updates when you modify `docker-mcp-gateway/mcp.json`.
 
 **Current symlinks:**
 - `~/.claude/mcp.json` (global)
@@ -176,7 +176,7 @@ All projects using the symlink automatically get updates when you modify `docker
 
 Add more as needed:
 ```bash
-ln -sf ~/github/docker-mcp/mcp.json ~/github/your-project/mcp.json
+ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 ```
 
 ## 🔗 Integration with Claude Code
