@@ -39,7 +39,7 @@ make logs
 make info
 ```
 
-## 📦 Available MCP Servers (9 Total)
+## 📦 Available MCP Servers (10 Total)
 
 ### Gateway Servers (5) - Via http://localhost:9090/sse
 | Server | Description |
@@ -50,13 +50,14 @@ make info
 | memory | Persistent storage |
 | sequentialthinking | Complex reasoning |
 
-### Direct Launch Servers (4) - Via npx
+### Direct Launch Servers (5) - Via npx
 | Server | Description | Requires |
 |--------|-------------|----------|
 | context7 | Library documentation search | - |
 | supabase | PostgreSQL database access | Connection string |
 | stripe | Payment APIs | `STRIPE_SECRET_KEY` |
 | twilio | Voice/SMS APIs | Account SID + API keys |
+| figma | Figma design file access | `FIGMA_ACCESS_TOKEN` |
 
 ## 🔧 Configuration
 
@@ -70,6 +71,7 @@ docker mcp secret set STRIPE_API_KEY=sk_...
 docker mcp secret set TWILIO_ACCOUNT_SID=AC...
 docker mcp secret set TWILIO_API_KEY=SK...
 docker mcp secret set TWILIO_API_SECRET=...
+docker mcp secret set FIGMA_ACCESS_TOKEN=figd_...
 
 # List secrets
 docker mcp secret ls

@@ -97,9 +97,9 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 
 ---
 
-## 📦 利用可能な MCP サーバー
+## 📦 利用可能な MCP サーバー (18 個)
 
-### Gateway 経由 (25 ツール)
+### Gateway 経由 (6 サーバー / 26 ツール)
 | サーバー | ツール数 | 説明 |
 |----------|---------|------|
 | **time** | 2 | 現在時刻/日付取得 |
@@ -107,14 +107,27 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 | **git** | 12 | Git 操作 |
 | **memory** | 9 | 永続ストレージ |
 | **sequentialthinking** | 1 | 複雑な推論 |
+| **serena** | 1 | シンボル検索 (Python/Go) |
 
-### Direct Launch (npx 起動)
-| サーバー | 説明 | 認証 |
-|----------|------|------|
-| **context7** | ライブラリドキュメント検索 | 不要 |
-| **mcp-postgres-server** | PostgreSQL 操作 (Supabase self-hosted 接続) | 接続文字列必要 |
-| **stripe** | 決済 API | API キー必要 |
-| **twilio** | 電話/SMS API | API キー必要 |
+### Direct Launch (npx/uvx 起動) - 認証不要
+| サーバー | 説明 |
+|----------|------|
+| **context7** | ライブラリドキュメント検索 |
+| **filesystem** | ファイル操作 (セキュアなアクセス制御) |
+| **puppeteer** | ブラウザ自動化・Webスクレイピング |
+
+### Direct Launch - 認証必要
+| サーバー | 説明 | 必要な認証情報 |
+|----------|------|--------------|
+| **brave-search** | Web/ニュース/画像/動画検索 | `BRAVE_API_KEY` |
+| **github** | GitHub リポジトリ操作・検索 | `GITHUB_PERSONAL_ACCESS_TOKEN` |
+| **mcp-postgres-server** | PostgreSQL 操作 (Supabase対応) | `POSTGRES_CONNECTION_STRING` |
+| **sqlite** | SQLite データベース操作 | `SQLITE_DB_PATH` (optional) |
+| **stripe** | 決済 API | `STRIPE_SECRET_KEY` |
+| **twilio** | 電話/SMS API | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
+| **figma** | Figma デザインファイルアクセス | `FIGMA_ACCESS_TOKEN` |
+| **slack** | Slack ワークスペース統合 | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
+| **sentry** | エラーモニタリング・デバッグ | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` |
 
 ---
 
@@ -128,6 +141,7 @@ docker mcp secret set STRIPE_SECRET_KEY=sk_...
 docker mcp secret set TWILIO_ACCOUNT_SID=AC...
 docker mcp secret set TWILIO_API_KEY=SK...
 docker mcp secret set TWILIO_API_SECRET=...
+docker mcp secret set FIGMA_ACCESS_TOKEN=figd_...
 
 # 確認
 docker mcp secret ls
@@ -144,9 +158,53 @@ docker mcp secret rm STRIPE_SECRET_KEY
 
 詳細は [SECRETS.md](./SECRETS.md) を参照。
 
-### 新しい MCP サーバーの追加
+### 🎛️ MCP サーバーの有効化/無効化
 
-`mcp-config.json` を編集:
+`mcp.json` をテキストエディタで開いて、使わないサーバーを削除または追加します：
+
+```bash
+# マスター設定を編集
+vim ~/github/docker-mcp-gateway/mcp.json
+# または
+code ~/github/docker-mcp-gateway/mcp.json
+```
+
+**無効化する場合**: 該当サーバーのエントリを削除
+```json
+{
+  "mcpServers": {
+    "docker-mcp-gateway": { ... },
+    "context7": { ... },
+    // "puppeteer": { ... }  ← このサーバーを削除
+  }
+}
+```
+
+**有効化する場合**: `mcp.json` にサーバー定義を追加
+```json
+{
+  "mcpServers": {
+    "your-new-server": {
+      "command": "npx",
+      "args": ["-y", "@your/mcp-package"],
+      "env": {
+        "API_KEY": "${YOUR_API_KEY}"
+      },
+      "description": "Your server description"
+    }
+  }
+}
+```
+
+**エディタ再起動**: 変更を反映
+```bash
+# Claude Code の場合
+# メニューから "Restart" を選択
+```
+
+### 新しい MCP サーバーの追加 (Gateway 経由)
+
+Gateway 経由で起動したい場合は `mcp-config.json` を編集:
 
 ```json
 {

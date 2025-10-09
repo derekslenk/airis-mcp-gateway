@@ -11,7 +11,7 @@ services:
       - run
       - --transport=sse
       - --port=9090
-      - --servers=time,fetch,git,memory,sequentialthinking,context7,supabase,serena,stripe,twilio
+      - --servers=time,fetch,git,memory,sequentialthinking,context7
     ports:
       - "9090:9090"
     volumes:
@@ -19,6 +19,8 @@ services:
       - /Users/kazuki/github:/workspace/github:rw
       - claude-memory:/app/memory
       - ./mcp-config.json:/etc/docker-mcp/config.json:ro
+    env_file:
+      - .env
     environment:
       - DOCKER_MCP_SERVERS=time,fetch,git,memory,sequentialthinking
     labels:
@@ -26,6 +28,7 @@ services:
       - "x-secret:TWILIO_ACCOUNT_SID=/run/secrets/twilio_sid"
       - "x-secret:TWILIO_API_KEY=/run/secrets/twilio_key"
       - "x-secret:TWILIO_API_SECRET=/run/secrets/twilio_secret"
+      - "x-secret:FIGMA_ACCESS_TOKEN=/run/secrets/figma_token"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/"]

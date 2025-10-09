@@ -39,6 +39,12 @@
         "--dsn",
         "${POSTGRES_CONNECTION_STRING:-postgresql://mcp_readonly:mcp_readonly_password@localhost:5432/postgres}"
       ]
+    },
+    "figma": {
+      "url": "https://mcp.figma.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${FIGMA_ACCESS_TOKEN}"
+      }
     }
   },
   "log": {
