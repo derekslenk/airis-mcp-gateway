@@ -1,43 +1,66 @@
 # Docker MCP Gateway
 
-**全プロジェクト共通の MCP サーバー管理基盤**
+**MCP サーバーのトークン爆発問題を解決する統合ゲートウェイ**
 
-Model Context Protocol (MCP) サーバーを Docker で一元管理。すべてのプロジェクトから同じ MCP サーバー群にアクセス。
+Model Context Protocol (MCP) サーバーを Docker で一元管理し、IDE のトークン消費とマルチエディタ設定地獄を解決します。
 
-```
-Claude Code (任意のプロジェクト)
-    ↓
-~/github/docker-mcp-gateway/mcp.json (Git管理)
-    ↓
-Gateway (http://localhost:9090/sse)
-│   ├─ time
-│   ├─ fetch
-│   ├─ git
-│   ├─ memory
-│   └─ sequentialthinking
-│
-└─ npx Direct Launch (4 servers)
-    ├─ context7 (ライブラリドキュメント)
-    ├─ supabase (PostgreSQL)
-    ├─ stripe (決済)
-    └─ twilio (電話/SMS)
-```
+**[English README](./README.md)**
 
 ---
 
 ## 🎯 解決する問題
 
-### ❌ Before
-- プロジェクトごとに MCP サーバーを起動 (無駄なリソース消費)
-- 設定ファイルが各プロジェクトに散在
-- API キーが複数の `.env` に重複
-- サーバー追加時に全プロジェクトで設定変更
+### Problem 1: トークン爆発
+- **MCP サーバーのツール説明文が膨大** → IDE が起動時に全ツール定義を読み込む
+- **閾値超えで動作不良** → トークン数が一定値を超えると IDE がハングまたは出力低下
+- **使わないツールでもトークン消費** → 必要ないツールの説明まで毎回読み込まれる
 
-### ✅ After
-- **1つの Gateway で全プロジェクトをサポート**
-- **mcp.json は symlink で共有** (設定は Git 管理)
-- **API キーは Docker secrets で一元管理**
-- **サーバー追加は1箇所だけ**
+### Problem 2: マルチエディタ設定地獄
+```
+Cursor     → mcp.json (独自フォーマット)
+Windsurf   → mcp.json (微妙に違う)
+Zed        → mcp.json (また違う)
+VS Code    → settings.json (全然違う)
+```
+**結果**: 各エディタで個別に MCP 設定を書き、メンテナンス地獄
+
+### Problem 3: プロジェクトごとの重複起動
+- 各プロジェクトで MCP サーバーを起動 → メモリ/CPU の無駄
+- API キーが複数の `.env` に散在 → セキュリティリスク
+
+---
+
+## ✨ 解決策
+
+### 🚀 Gateway パターン
+
+```
+Claude Code / Cursor / Windsurf / Zed
+    ↓
+Gateway (http://localhost:9090/sse)
+│   ├─ time (2 tools)
+│   ├─ fetch (1 tool)
+│   ├─ git (12 tools)
+│   ├─ memory (9 tools)
+│   └─ sequentialthinking (1 tool)
+│
+└─ Direct Launch (npx)
+    ├─ context7 (ライブラリドキュメント検索)
+    ├─ mcp-postgres-server (PostgreSQL → Supabase self-hosted 接続)
+    ├─ stripe (決済 API)
+    └─ twilio (電話/SMS API)
+```
+
+**仕組み**:
+1. **IDE には Gateway の URL だけ登録** → ツール説明文を送らない (0 トークン)
+2. **必要な時だけ動的ロード** → ユーザーが明示的に指定した時のみツール定義を読み込む
+3. **1つの設定ファイル** → `mcp.json` を symlink で全エディタ・全プロジェクトに共有
+
+**効果**:
+- ✅ **トークン消費ゼロ** (使わない限り)
+- ✅ **動的ロード** (必要な時だけ)
+- ✅ **一元管理** (設定ファイル 1 つ)
+- ✅ **API キー集約** (Docker secrets で安全管理)
 
 ---
 
@@ -53,10 +76,10 @@ cd ~/github/docker-mcp-gateway
 ### 2. 起動
 
 ```bash
-make up    # すべての MCP サーバー + プロキシ起動
+make up    # Gateway + 全 MCP サーバー起動
 ```
 
-### 3. Claude Code と接続
+### 3. エディタと接続
 
 #### グローバル設定 (推奨)
 ```bash
@@ -68,7 +91,7 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/.claude/mcp.json
 ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 ```
 
-### 4. Claude Code 再起動
+### 4. エディタ再起動
 
 設定が反映されます。
 
@@ -76,34 +99,32 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 
 ## 📦 利用可能な MCP サーバー
 
-| サーバー | 説明 | タイプ | 認証 |
-|----------|------|--------|------|
-| **context7** | ライブラリドキュメント検索 | SSE | 不要 |
-| **time** | 現在時刻/日付取得 | stdio | 不要 |
-| **fetch** | Web コンテンツ取得 | stdio | 不要 |
-| **memory** | 永続ストレージ | stdio | 不要 |
-| **filesystem** | ファイル操作 | stdio | 不要 |
-| **git** | Git 操作 | stdio | 不要 |
-| **sequential-thinking** | 複雑な推論 | stdio | 不要 |
-| **supabase** | PostgreSQL データベース | stdio | 不要 |
-| **stripe** | 決済 API | stdio | API キー必要 |
-| **twilio** | 電話/SMS API | stdio | API キー必要 |
-| **brave-search** | Web 検索 | stdio | API キー必要 |
-| **puppeteer** | ブラウザ自動化 | stdio | 不要 |
-| **slack** | Slack API | stdio | トークン必要 |
-| **github** | GitHub API | stdio | トークン必要 |
+### Gateway 経由 (25 ツール)
+| サーバー | ツール数 | 説明 |
+|----------|---------|------|
+| **time** | 2 | 現在時刻/日付取得 |
+| **fetch** | 1 | Web コンテンツ取得 |
+| **git** | 12 | Git 操作 |
+| **memory** | 9 | 永続ストレージ |
+| **sequentialthinking** | 1 | 複雑な推論 |
+
+### Direct Launch (npx 起動)
+| サーバー | 説明 | 認証 |
+|----------|------|------|
+| **context7** | ライブラリドキュメント検索 | 不要 |
+| **mcp-postgres-server** | PostgreSQL 操作 (Supabase self-hosted 接続) | 接続文字列必要 |
+| **stripe** | 決済 API | API キー必要 |
+| **twilio** | 電話/SMS API | API キー必要 |
 
 ---
 
 ## 🔧 設定
 
-### 🔐 API キー管理 (推奨)
-
-Docker MCP の secrets 機能を使用:
+### 🔐 API キー管理 (推奨: Docker secrets)
 
 ```bash
 # シークレット登録 (1回だけ)
-docker mcp secret set STRIPE_API_KEY=sk_...
+docker mcp secret set STRIPE_SECRET_KEY=sk_...
 docker mcp secret set TWILIO_ACCOUNT_SID=AC...
 docker mcp secret set TWILIO_API_KEY=SK...
 docker mcp secret set TWILIO_API_SECRET=...
@@ -112,7 +133,7 @@ docker mcp secret set TWILIO_API_SECRET=...
 docker mcp secret ls
 
 # 削除
-docker mcp secret rm STRIPE_API_KEY
+docker mcp secret rm STRIPE_SECRET_KEY
 ```
 
 **セキュリティ上の利点**:
@@ -156,8 +177,6 @@ make restart
 | `make down` | すべてのサービス停止 |
 | `make restart` | 再起動 |
 | `make logs` | すべてのログ表示 |
-| `make logs-context7` | context7 のログ |
-| `make logs-supabase` | supabase のログ |
 | `make ps` | コンテナ状態表示 |
 | `make info` | 利用可能なサーバー一覧 |
 | `make clean` | クリーンアップ |
@@ -168,26 +187,36 @@ make restart
 
 ```
 docker-mcp-gateway/
-├── docker-compose.yml      # すべてのサービス (サーバー + プロキシ)
-├── mcp-config.json         # プロキシ設定 (17サーバー)
-├── mcp.json                # Claude Code クライアント設定
+├── docker-compose.yml      # すべてのサービス (Gateway + MCP サーバー)
+├── mcp-config.json         # Gateway 設定 (内部で起動する MCP サーバー)
+├── mcp.json                # クライアント設定 (エディタ側)
 ├── .env.example            # 環境変数テンプレート
 ├── .env                    # 実際のシークレット (.gitignore)
 ├── Makefile                # ショートカット
-├── README.md               # English (master)
-├── README.ja.md            # 日本語
-└── context7/               # カスタム MCP サーバービルド
+├── README.md               # English
+├── README.ja.md            # このファイル (日本語)
+└── SECRETS.md              # シークレット管理ガイド
 ```
 
 ---
 
-## 🌐 複数プロジェクトからの利用
+## 🌐 マルチエディタ & マルチプロジェクト対応
 
-symlink を作成すれば、`docker-mcp-gateway/mcp.json` の変更が自動的に全プロジェクトに反映されます。
+### 一元管理の仕組み
 
-**現在の symlink**:
-- `~/.claude/mcp.json` (グローバル)
-- `~/github/agiletec/mcp.json` (agiletec プロジェクト)
+```
+~/github/docker-mcp-gateway/mcp.json (マスター設定)
+    ↓ symlink
+├─ ~/.claude/mcp.json (Claude Code グローバル)
+├─ ~/github/agiletec/mcp.json (agiletec プロジェクト)
+├─ ~/github/neural/mcp.json (neural プロジェクト)
+└─ ~/github/storage-smart/mcp.json (storage-smart プロジェクト)
+```
+
+**メリット**:
+- マスター設定を更新 → 全エディタ・全プロジェクトに自動反映
+- エディタごとの設定差異を吸収
+- プロジェクト切り替え時も MCP サーバーは常時起動
 
 **追加方法**:
 ```bash
@@ -200,21 +229,24 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 
 - **Git にコミット可能**: `mcp-config.json`, `mcp.json`, `docker-compose.yml`
 - **Git にコミット禁止**: `.env` (実際の API キーを含む)
-- **推奨**: Docker MCP secrets を使用 (`.env` 不要)
+- **推奨**: Docker MCP secrets を使用 (`.env` 不要、より安全)
 
 ---
 
 ## 🐛 トラブルシューティング
 
-### プロキシが起動しない
+### Gateway が起動しない
 ```bash
-docker logs mcp-proxy
+docker logs docker-mcp-gateway
 ```
 
-### 個別サーバーの問題
+### 個別 MCP サーバーの問題
 ```bash
-make logs-context7
-make logs-supabase
+# Gateway 内のサーバー
+make logs
+
+# npx 起動サーバー (Claude Code のコンソールに出力)
+# context7, mcp-postgres-server, stripe, twilio
 ```
 
 ### クリーン再起動
@@ -230,14 +262,14 @@ make ps
 
 ---
 
-## 🔗 Claude Code との統合
+## 🔗 エディタとの統合
 
-以下の操作後は Claude Code を再起動:
-1. プロキシの起動/停止
+以下の操作後はエディタを再起動:
+1. Gateway の起動/停止
 2. `mcp.json` の変更
 3. 新しい MCP サーバーの追加
 
-プロキシは常時起動 - プロジェクト切り替え時の再起動は不要。
+Gateway は常時起動 - プロジェクト切り替え時の再起動は不要。
 
 ---
 
@@ -263,4 +295,4 @@ MIT License - 自由に使ってください
 
 [@kazukinakai](https://github.com/kazukinakai)
 
-複数プロジェクトで MCP サーバーを管理する中で生まれたツールです。
+MCP サーバーのトークン爆発問題と設定地獄を解決するために生まれたツールです。

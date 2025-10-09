@@ -9,7 +9,7 @@
       "args": ["-y", "@upstash/context7-mcp"],
       "description": "Library documentation search"
     },
-    "supabase": {
+    "mcp-postgres-server": {
       "command": "npx",
       "args": [
         "-y",
@@ -17,7 +17,7 @@
         "--dsn",
         "${POSTGRES_CONNECTION_STRING:-postgresql://mcp_readonly:mcp_readonly_password@localhost:5432/postgres}"
       ],
-      "description": "Supabase PostgreSQL access"
+      "description": "PostgreSQL database operations (connected to Supabase self-hosted)"
     },
     "stripe": {
       "command": "npx",

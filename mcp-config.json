@@ -31,7 +31,7 @@
         "serena-mcp-server"
       ]
     },
-    "supabase": {
+    "mcp-postgres-server": {
       "command": "npx",
       "args": [
         "-y",
