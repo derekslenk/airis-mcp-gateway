@@ -97,37 +97,48 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 
 ---
 
-## 📦 利用可能な MCP サーバー (18 個)
+## 📦 利用可能な MCP サーバー (18 個 - 全て Docker 内実行)
 
-### Gateway 経由 (6 サーバー / 26 ツール)
-| サーバー | ツール数 | 説明 |
-|----------|---------|------|
-| **time** | 2 | 現在時刻/日付取得 |
-| **fetch** | 1 | Web コンテンツ取得 |
-| **git** | 12 | Git 操作 |
-| **memory** | 9 | 永続ストレージ |
-| **sequentialthinking** | 1 | 複雑な推論 |
-| **serena** | 1 | シンボル検索 (Python/Go) |
+### 🐳 全サーバー Gateway 経由 (ホスト汚染ゼロ)
 
-### Direct Launch (npx/uvx 起動) - 認証不要
-| サーバー | 説明 |
-|----------|------|
-| **context7** | ライブラリドキュメント検索 |
-| **filesystem** | ファイル操作 (セキュアなアクセス制御) |
-| **puppeteer** | ブラウザ自動化・Webスクレイピング |
-
-### Direct Launch - 認証必要
-| サーバー | 説明 | 必要な認証情報 |
-|----------|------|--------------|
+**Core Tools**:
+| サーバー | 説明 | 認証 |
+|----------|------|------|
+| **time** | 現在時刻/日付取得 | 不要 |
+| **fetch** | Web コンテンツ取得 | 不要 |
+| **git** | Git 操作 | 不要 |
+| **memory** | 永続ストレージ | 不要 |
+| **sequentialthinking** | 複雑な推論 | 不要 |
+| **context7** | ライブラリドキュメント検索 | 不要 |
+| **filesystem** | ファイル操作 (セキュアなアクセス制御) | 不要 |
 | **brave-search** | Web/ニュース/画像/動画検索 | `BRAVE_API_KEY` |
 | **github** | GitHub リポジトリ操作・検索 | `GITHUB_PERSONAL_ACCESS_TOKEN` |
+
+**Database**:
+| サーバー | 説明 | 認証 |
+|----------|------|------|
 | **mcp-postgres-server** | PostgreSQL 操作 (Supabase対応) | `POSTGRES_CONNECTION_STRING` |
-| **sqlite** | SQLite データベース操作 | `SQLITE_DB_PATH` (optional) |
+| **sqlite** | SQLite データベース操作 | 不要 |
+
+**API Integrations**:
+| サーバー | 説明 | 認証 |
+|----------|------|------|
 | **stripe** | 決済 API | `STRIPE_SECRET_KEY` |
 | **twilio** | 電話/SMS API | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
 | **figma** | Figma デザインファイルアクセス | `FIGMA_ACCESS_TOKEN` |
 | **slack** | Slack ワークスペース統合 | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
+
+**Advanced Tools**:
+| サーバー | 説明 | 認証 |
+|----------|------|------|
+| **serena** | シンボル検索 (Python/Go) | 不要 |
+| **puppeteer** | ブラウザ自動化・Webスクレイピング | 不要 |
 | **sentry** | エラーモニタリング・デバッグ | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` |
+
+**✅ メリット**:
+- 全サーバーが Docker コンテナ内で実行
+- Mac ホストに依存関係インストール不要
+- `npx`/`uvx` は Gateway コンテナ内でのみ実行
 
 ---
 
@@ -160,51 +171,25 @@ docker mcp secret rm STRIPE_SECRET_KEY
 
 ### 🎛️ MCP サーバーの有効化/無効化
 
-`mcp.json` をテキストエディタで開いて、使わないサーバーを削除または追加します：
+**重要**: 全サーバーは Gateway 内で実行されるため、`mcp-config.json` を編集します。
 
 ```bash
-# マスター設定を編集
-vim ~/github/docker-mcp-gateway/mcp.json
-# または
-code ~/github/docker-mcp-gateway/mcp.json
+# Gateway 設定を編集
+vim ~/github/docker-mcp-gateway/mcp-config.json
 ```
 
-**無効化する場合**: 該当サーバーのエントリを削除
+**無効化する場合**: 該当サーバーのエントリを削除またはコメントアウト
 ```json
 {
   "mcpServers": {
-    "docker-mcp-gateway": { ... },
     "context7": { ... },
-    // "puppeteer": { ... }  ← このサーバーを削除
+    "filesystem": { ... }
+    // "puppeteer": { ... }  ← コメントアウトまたは削除
   }
 }
 ```
 
-**有効化する場合**: `mcp.json` にサーバー定義を追加
-```json
-{
-  "mcpServers": {
-    "your-new-server": {
-      "command": "npx",
-      "args": ["-y", "@your/mcp-package"],
-      "env": {
-        "API_KEY": "${YOUR_API_KEY}"
-      },
-      "description": "Your server description"
-    }
-  }
-}
-```
-
-**エディタ再起動**: 変更を反映
-```bash
-# Claude Code の場合
-# メニューから "Restart" を選択
-```
-
-### 新しい MCP サーバーの追加 (Gateway 経由)
-
-Gateway 経由で起動したい場合は `mcp-config.json` を編集:
+**有効化する場合**: `mcp-config.json` に追加
 
 ```json
 {

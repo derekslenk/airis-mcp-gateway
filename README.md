@@ -98,37 +98,48 @@ Changes will take effect after editor restart.
 
 ---
 
-## 📦 Available MCP Servers (18 Total)
+## 📦 Available MCP Servers (18 Total - All Docker-Contained)
 
-### Gateway Servers (6 servers / 26 tools)
-| Server | Tools | Description |
-|--------|-------|-------------|
-| **time** | 2 | Current time/date operations |
-| **fetch** | 1 | Web content fetching |
-| **git** | 12 | Git repository operations |
-| **memory** | 9 | Persistent knowledge storage |
-| **sequentialthinking** | 1 | Complex problem-solving |
-| **serena** | 1 | Symbol search (Python/Go) |
+### 🐳 All Servers via Gateway (Zero Host Pollution)
 
-### Direct Launch (npx/uvx) - No Auth Required
-| Server | Description |
-|--------|-------------|
-| **context7** | Library documentation search |
-| **filesystem** | Secure file operations with access controls |
-| **puppeteer** | Browser automation and web scraping |
-
-### Direct Launch - Auth Required
-| Server | Description | Required Credentials |
-|--------|-------------|---------------------|
+**Core Tools**:
+| Server | Description | Auth Required |
+|--------|-------------|---------------|
+| **time** | Current time/date operations | No |
+| **fetch** | Web content fetching | No |
+| **git** | Git repository operations | No |
+| **memory** | Persistent knowledge storage | No |
+| **sequentialthinking** | Complex problem-solving | No |
+| **context7** | Library documentation search | No |
+| **filesystem** | Secure file operations with access controls | No |
 | **brave-search** | Web/news/image/video search | `BRAVE_API_KEY` |
 | **github** | GitHub repository operations | `GITHUB_PERSONAL_ACCESS_TOKEN` |
+
+**Database**:
+| Server | Description | Auth Required |
+|--------|-------------|---------------|
 | **mcp-postgres-server** | PostgreSQL operations (Supabase compatible) | `POSTGRES_CONNECTION_STRING` |
-| **sqlite** | SQLite database operations | `SQLITE_DB_PATH` (optional) |
+| **sqlite** | SQLite database operations | No |
+
+**API Integrations**:
+| Server | Description | Auth Required |
+|--------|-------------|---------------|
 | **stripe** | Payment APIs | `STRIPE_SECRET_KEY` |
 | **twilio** | Phone/SMS APIs | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
 | **figma** | Figma design file access | `FIGMA_ACCESS_TOKEN` |
 | **slack** | Slack workspace integration | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
+
+**Advanced Tools**:
+| Server | Description | Auth Required |
+|--------|-------------|---------------|
+| **serena** | Symbol search (Python/Go) | No |
+| **puppeteer** | Browser automation and web scraping | No |
 | **sentry** | Error monitoring and debugging | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` |
+
+**✅ Benefits**:
+- All servers run inside Docker container
+- No dependencies installed on Mac host
+- `npx`/`uvx` only execute within Gateway container
 
 ---
 
@@ -161,51 +172,25 @@ See [SECRETS.md](./SECRETS.md) for details.
 
 ### 🎛️ Enable/Disable MCP Servers
 
-Edit `mcp.json` to enable or disable servers:
+**Important**: All servers run inside Gateway, so edit `mcp-config.json`.
 
 ```bash
-# Edit master config
-vim ~/github/docker-mcp-gateway/mcp.json
-# or
-code ~/github/docker-mcp-gateway/mcp.json
+# Edit Gateway configuration
+vim ~/github/docker-mcp-gateway/mcp-config.json
 ```
 
-**To disable**: Remove server entry
+**To disable**: Remove or comment out server entry
 ```json
 {
   "mcpServers": {
-    "docker-mcp-gateway": { ... },
     "context7": { ... },
-    // "puppeteer": { ... }  ← Remove this server
+    "filesystem": { ... }
+    // "puppeteer": { ... }  ← Comment out or remove
   }
 }
 ```
 
-**To enable**: Add server definition to `mcp.json`
-```json
-{
-  "mcpServers": {
-    "your-new-server": {
-      "command": "npx",
-      "args": ["-y", "@your/mcp-package"],
-      "env": {
-        "API_KEY": "${YOUR_API_KEY}"
-      },
-      "description": "Your server description"
-    }
-  }
-}
-```
-
-**Restart editor**: Apply changes
-```bash
-# For Claude Code
-# Select "Restart" from menu
-```
-
-### Add New MCP Server (via Gateway)
-
-To add servers via Gateway, edit `mcp-config.json`:
+**To enable**: Add to `mcp-config.json`
 
 ```json
 {

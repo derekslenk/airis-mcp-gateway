@@ -11,7 +11,7 @@ services:
       - run
       - --transport=sse
       - --port=9090
-      - --servers=time,fetch,git,memory,sequentialthinking,context7
+      - --config=/etc/docker-mcp/config.json
     ports:
       - "9090:9090"
     volumes:
@@ -19,6 +19,7 @@ services:
       - /Users/kazuki/github:/workspace/github:rw
       - claude-memory:/app/memory
       - ./mcp-config.json:/etc/docker-mcp/config.json:ro
+      - ./figma-catalog.yaml:/etc/docker-mcp/figma-catalog.yaml:ro
     env_file:
       - .env
     environment:

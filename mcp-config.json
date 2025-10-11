@@ -7,30 +7,35 @@
     "type": "sse"
   },
   "mcpServers": {
+    "__comment_core": "=== CORE TOOLS (Gateway経由 - Docker内実行) ===",
     "context7": {
-      "url": "http://docker-mcp-gateway-context7:3000/sse"
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
     },
-    "stripe": {
-      "command": "bash",
+    "filesystem": {
+      "command": "npx",
       "args": [
-        "-c",
-        "STRIPE_SECRET_KEY=$(cat /run/secrets/stripe_key) npx -y @stripe/mcp --tools=all"
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/workspace/github"
       ]
     },
-    "twilio": {
-      "command": "bash",
-      "args": [
-        "-c",
-        "TWILIO_ACCOUNT_SID=$(cat /run/secrets/twilio_sid) TWILIO_API_KEY=$(cat /run/secrets/twilio_key) TWILIO_API_SECRET=$(cat /run/secrets/twilio_secret) npx -y @twilio-alpha/mcp"
-      ]
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
     },
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from", "git+https://github.com/oraios/serena",
-        "serena-mcp-server"
-      ]
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
     },
+
+    "__comment_database": "=== DATABASE ===",
     "mcp-postgres-server": {
       "command": "npx",
       "args": [
@@ -40,10 +45,60 @@
         "${POSTGRES_CONNECTION_STRING:-postgresql://mcp_readonly:mcp_readonly_password@localhost:5432/postgres}"
       ]
     },
+    "sqlite": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-sqlite", "--db-path", "${SQLITE_DB_PATH:-/app/data.db}"]
+    },
+
+    "__comment_api": "=== API INTEGRATIONS ===",
+    "stripe": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "STRIPE_SECRET_KEY=$(cat /run/secrets/stripe_key 2>/dev/null || echo ${STRIPE_SECRET_KEY}) npx -y @stripe/mcp --tools=all"
+      ]
+    },
+    "twilio": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "TWILIO_ACCOUNT_SID=$(cat /run/secrets/twilio_sid 2>/dev/null || echo ${TWILIO_ACCOUNT_SID}) TWILIO_API_KEY=$(cat /run/secrets/twilio_key 2>/dev/null || echo ${TWILIO_API_KEY}) TWILIO_API_SECRET=$(cat /run/secrets/twilio_secret 2>/dev/null || echo ${TWILIO_API_SECRET}) npx -y @twilio-alpha/mcp"
+      ]
+    },
     "figma": {
-      "url": "https://mcp.figma.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${FIGMA_ACCESS_TOKEN}"
+      "command": "npx",
+      "args": ["-y", "@hapins/figma-mcp"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
+      }
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+      }
+    },
+
+    "__comment_advanced": "=== ADVANCED TOOLS ===",
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena-mcp-server"
+      ]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "sentry": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sentry"],
+      "env": {
+        "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}",
+        "SENTRY_ORG": "${SENTRY_ORG}"
       }
     }
   },
