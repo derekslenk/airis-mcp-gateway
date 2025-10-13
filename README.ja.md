@@ -97,7 +97,7 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 
 ---
 
-## 📦 利用可能な MCP サーバー (18 個 - 全て Docker 内実行)
+## 📦 利用可能な MCP サーバー (25 個 - 全て Docker 内実行)
 
 ### 🐳 全サーバー Gateway 経由 (ホスト汚染ゼロ)
 
@@ -114,21 +114,33 @@ ln -sf ~/github/docker-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 | **brave-search** | Web/ニュース/画像/動画検索 | `BRAVE_API_KEY` |
 | **github** | GitHub リポジトリ操作・検索 | `GITHUB_PERSONAL_ACCESS_TOKEN` |
 
+**AI Search & Research**:
+| サーバー | 説明 | 認証 |
+|----------|------|------|
+| **tavily** | AI agents用検索エンジン | `TAVILY_API_KEY` |
+
 **Database**:
 | サーバー | 説明 | 認証 |
 |----------|------|------|
-| **mcp-postgres-server** | PostgreSQL 操作 (Supabase対応) | `POSTGRES_CONNECTION_STRING` |
+| **supabase** | 公式Supabase統合 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
+| **mcp-postgres-server** | PostgreSQL操作 (セルフホストSupabase用) | `POSTGRES_CONNECTION_STRING` |
+| **mongodb** | MongoDB NoSQLデータベース | `MONGODB_CONNECTION_STRING` |
 | **sqlite** | SQLite データベース操作 | 不要 |
 
-**API Integrations**:
+**Productivity & Collaboration**:
+| サーバー | 説明 | 認証 |
+|----------|------|------|
+| **notion** | Notionワークスペース統合 | `NOTION_API_KEY` |
+| **slack** | Slackワークスペース統合 | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
+| **figma** | Figmaデザインファイルアクセス | `FIGMA_ACCESS_TOKEN` |
+
+**Payment & API Integrations**:
 | サーバー | 説明 | 認証 |
 |----------|------|------|
 | **stripe** | 決済 API | `STRIPE_SECRET_KEY` |
 | **twilio** | 電話/SMS API | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
-| **figma** | Figma デザインファイルアクセス | `FIGMA_ACCESS_TOKEN` |
-| **slack** | Slack ワークスペース統合 | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
 
-**Advanced Tools**:
+**Development Tools**:
 | サーバー | 説明 | 認証 |
 |----------|------|------|
 | **serena** | シンボル検索 (Python/Go) | 不要 |

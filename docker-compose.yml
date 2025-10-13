@@ -12,16 +12,15 @@ services:
       - --transport=sse
       - --port=9090
       - --config=/etc/docker-mcp/config.json
+      - --servers=time,fetch,git,memory,sequentialthinking
     ports:
-      - "9090:9090"
+      - "${GATEWAY_PORT:-9090}:9090"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /Users/kazuki/github:/workspace/github:rw
       - claude-memory:/app/memory
       - ./mcp-config.json:/etc/docker-mcp/config.json:ro
       - ./figma-catalog.yaml:/etc/docker-mcp/figma-catalog.yaml:ro
-    env_file:
-      - .env
     environment:
       - DOCKER_MCP_SERVERS=time,fetch,git,memory,sequentialthinking
     labels:
@@ -39,6 +38,64 @@ services:
       start_period: 40s
 
 
+  # PostgreSQL Database (internal only, no port binding)
+  postgres:
+    image: postgres:17-alpine
+    container_name: airis-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-mcp_gateway}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: airis-api
+    ports:
+      - "${API_PORT:-8001}:8000"
+    volumes:
+      - /Users/kazuki/github:/workspace/github:ro
+      - ./apps/api/app:/app/app:rw
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mcp_gateway}
+      - DEBUG=${API_DEBUG:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Settings UI - React + Vite frontend
+  settings-ui:
+    build:
+      context: ./apps/settings
+      dockerfile: Dockerfile
+    container_name: airis-settings-ui
+    ports:
+      - "${UI_PORT:-5173}:80"
+    depends_on:
+      - mcp-gateway
+      - api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+
 volumes:
   claude-memory:
+    driver: local
+  postgres_data:
     driver: local

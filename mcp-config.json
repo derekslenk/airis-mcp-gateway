@@ -40,18 +40,30 @@
 
     "__comment_disabled": "=== DISABLED (auth required - enable via frontend UI) ===",
     "__comment_context7": "context7 moved to mcp.json (editor-side npx) - Docker version has bugs",
-    "__disabled_brave-search": {
+
+    "__comment_ai_search": "=== AI SEARCH & RESEARCH ===",
+    "__disabled_tavily": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "args": ["-y", "@tavily/mcp-server"],
       "env": {
-        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
     },
-    "__disabled_github": {
+
+    "__comment_database": "=== DATABASE & BACKEND ===",
+    "__disabled_supabase": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": ["-y", "@supabase/mcp-server-supabase"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        "SUPABASE_URL": "${SUPABASE_URL}",
+        "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
+      }
+    },
+    "__disabled_mongodb": {
+      "command": "npx",
+      "args": ["-y", "@mongodb/mcp-server"],
+      "env": {
+        "MONGODB_CONNECTION_STRING": "${MONGODB_CONNECTION_STRING}"
       }
     },
     "__disabled_mcp-postgres-server": {
@@ -63,6 +75,32 @@
         "${POSTGRES_CONNECTION_STRING}"
       ]
     },
+
+    "__comment_productivity": "=== PRODUCTIVITY & COLLABORATION ===",
+    "__disabled_notion": {
+      "command": "npx",
+      "args": ["-y", "@notionhq/mcp-server"],
+      "env": {
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
+      }
+    },
+    "__disabled_slack": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+      }
+    },
+    "__disabled_figma": {
+      "command": "npx",
+      "args": ["-y", "@hapins/figma-mcp"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
+      }
+    },
+
+    "__comment_payment_api": "=== PAYMENT & API INTEGRATIONS ===",
     "__disabled_stripe": {
       "command": "bash",
       "args": [
@@ -77,19 +115,20 @@
         "TWILIO_ACCOUNT_SID=$(cat /run/secrets/twilio_sid 2>/dev/null || echo ${TWILIO_ACCOUNT_SID}) TWILIO_API_KEY=$(cat /run/secrets/twilio_key 2>/dev/null || echo ${TWILIO_API_KEY}) TWILIO_API_SECRET=$(cat /run/secrets/twilio_secret 2>/dev/null || echo ${TWILIO_API_SECRET}) npx -y @twilio-alpha/mcp"
       ]
     },
-    "__disabled_figma": {
+
+    "__comment_dev_tools": "=== DEVELOPMENT TOOLS ===",
+    "__disabled_github": {
       "command": "npx",
-      "args": ["-y", "@hapins/figma-mcp"],
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
       }
     },
-    "__disabled_slack": {
+    "__disabled_brave-search": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
       "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
-        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
       }
     },
     "__disabled_sentry": {

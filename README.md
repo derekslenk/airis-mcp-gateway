@@ -98,7 +98,7 @@ Changes will take effect after editor restart.
 
 ---
 
-## 📦 Available MCP Servers (18 Total - All Docker-Contained)
+## 📦 Available MCP Servers (25 Total - All Docker-Contained)
 
 ### 🐳 All Servers via Gateway (Zero Host Pollution)
 
@@ -115,21 +115,33 @@ Changes will take effect after editor restart.
 | **brave-search** | Web/news/image/video search | `BRAVE_API_KEY` |
 | **github** | GitHub repository operations | `GITHUB_PERSONAL_ACCESS_TOKEN` |
 
+**AI Search & Research**:
+| Server | Description | Auth Required |
+|--------|-------------|---------------|
+| **tavily** | AI agents search engine | `TAVILY_API_KEY` |
+
 **Database**:
 | Server | Description | Auth Required |
 |--------|-------------|---------------|
-| **mcp-postgres-server** | PostgreSQL operations (Supabase compatible) | `POSTGRES_CONNECTION_STRING` |
+| **supabase** | Official Supabase integration | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
+| **mcp-postgres-server** | PostgreSQL operations (self-hosted Supabase) | `POSTGRES_CONNECTION_STRING` |
+| **mongodb** | MongoDB NoSQL database | `MONGODB_CONNECTION_STRING` |
 | **sqlite** | SQLite database operations | No |
 
-**API Integrations**:
+**Productivity & Collaboration**:
+| Server | Description | Auth Required |
+|--------|-------------|---------------|
+| **notion** | Notion workspace integration | `NOTION_API_KEY` |
+| **slack** | Slack workspace integration | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
+| **figma** | Figma design file access | `FIGMA_ACCESS_TOKEN` |
+
+**Payment & API Integrations**:
 | Server | Description | Auth Required |
 |--------|-------------|---------------|
 | **stripe** | Payment APIs | `STRIPE_SECRET_KEY` |
 | **twilio** | Phone/SMS APIs | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
-| **figma** | Figma design file access | `FIGMA_ACCESS_TOKEN` |
-| **slack** | Slack workspace integration | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
 
-**Advanced Tools**:
+**Development Tools**:
 | Server | Description | Auth Required |
 |--------|-------------|---------------|
 | **serena** | Symbol search (Python/Go) | No |
