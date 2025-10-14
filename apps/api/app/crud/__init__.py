@@ -1,3 +1,3 @@
-from . import mcp_server
+from . import mcp_server, secret
 
-__all__ = ["mcp_server"]
+__all__ = ["mcp_server", "secret"]

@@ -94,6 +94,18 @@ services:
       start_period: 10s
 
 
+  # Test runner - fast config validation only
+  test:
+    image: python:3.12-slim
+    working_dir: /workspace
+    volumes:
+      - .:/workspace:ro
+    command: >
+      sh -c "pip install -q pytest &&
+             pytest tests/test_config.py -v"
+    profiles:
+      - test
+
 volumes:
   claude-memory:
     driver: local

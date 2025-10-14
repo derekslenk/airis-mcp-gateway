@@ -5,6 +5,14 @@ from .mcp_server import (
     MCPServerResponse,
     MCPServerToggle,
 )
+from .secret import (
+    SecretBase,
+    SecretCreate,
+    SecretUpdate,
+    SecretResponse,
+    SecretWithValue,
+    SecretListResponse,
+)
 
 __all__ = [
     "MCPServerBase",
@@ -12,4 +20,10 @@ __all__ = [
     "MCPServerUpdate",
     "MCPServerResponse",
     "MCPServerToggle",
+    "SecretBase",
+    "SecretCreate",
+    "SecretUpdate",
+    "SecretResponse",
+    "SecretWithValue",
+    "SecretListResponse",
 ]

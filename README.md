@@ -97,44 +97,46 @@ Claude Code / Cursor / Windsurf / Zed
     ↓
 Gateway (http://localhost:9090/sse)
 │
-├─ 🔧 Core Tools (Gateway内実行)
-│   ├─ time (2 tools)
-│   ├─ fetch (1 tool)
-│   ├─ git (12 tools)
-│   ├─ memory (9 tools)
-│   ├─ sequentialthinking (1 tool)
-│   ├─ filesystem (secure file ops)
-│   ├─ brave-search (web search)
-│   └─ github (repo operations)
+├─ 🎨 Settings UI (http://localhost:5173)
+│   └─ MCPサーバーのON/OFF切替、設定管理
 │
-├─ 🧠 AI & Research (Gateway内実行)
-│   └─ tavily (AI search engine)
+├─ 🚀 FastAPI Backend (http://localhost:8001)
+│   ├─ /mcp-servers (MCPサーバー管理API)
+│   └─ /secrets (シークレット管理API・暗号化)
 │
-├─ 🗄️ Database (Gateway内実行)
-│   ├─ supabase (official integration)
-│   ├─ mcp-postgres-server (self-hosted)
-│   ├─ mongodb (NoSQL)
-│   └─ sqlite (local DB)
+├─ 🗄️ PostgreSQL (内部)
+│   ├─ mcp_servers (サーバー設定)
+│   └─ secrets (暗号化されたAPIキー)
 │
-├─ 📊 Productivity (Gateway内実行)
-│   ├─ notion (workspace)
-│   ├─ slack (collaboration)
-│   └─ figma (design files)
-│
-├─ 💳 Payments & APIs (Gateway内実行)
-│   ├─ stripe (payment)
-│   └─ twilio (phone/SMS)
-│
-└─ 🛠️ Development (Gateway内実行)
-    ├─ serena (symbol search)
-    ├─ puppeteer (browser automation)
-    └─ sentry (error monitoring)
+└─ 📦 MCPサーバー群 (25個)
+    │
+    ├─ 🔧 Core Tools
+    │   ├─ time, fetch, git, memory
+    │   ├─ sequentialthinking, context7
+    │   ├─ filesystem, brave-search, github
+    │
+    ├─ 🧠 AI & Research
+    │   └─ tavily
+    │
+    ├─ 🗄️ Database
+    │   ├─ supabase, mcp-postgres-server
+    │   ├─ mongodb, sqlite
+    │
+    ├─ 📊 Productivity
+    │   ├─ notion, slack, figma
+    │
+    ├─ 💳 Payments & APIs
+    │   ├─ stripe, twilio
+    │
+    └─ 🛠️ Development
+        ├─ serena, puppeteer, sentry
 ```
 
 **仕組み**:
 1. **IDEがGateway URLのみ認識** → ツール定義は送信されない（0トークン）
 2. **動的オンデマンドロード** → 明示的リクエスト時のみツール定義取得
 3. **単一設定ファイル** → `mcp.json`を全エディタ・プロジェクトにsymlink
+4. **UI/API統合** → フロントでポチポチ切替、PostgreSQLで暗号化保存
 
 ---
 
@@ -263,15 +265,55 @@ make restart
 
 ## 🛠️ コマンド
 
+### 基本操作
 | コマンド | 説明 |
 |---------|------|
-| `make up` | 全サービス起動 |
+| `make help` | 全コマンド一覧表示 |
+| `make up` | 全サービス起動 (Gateway + DB + API + UI) |
 | `make down` | 全サービス停止 |
 | `make restart` | サービス再起動 |
 | `make logs` | 全ログ表示 |
+| `make logs-<service>` | 特定サービスログ (例: `make logs-api`) |
 | `make ps` | コンテナ状態確認 |
-| `make info` | 利用可能サーバー表示 |
-| `make clean` | クリーンアップ |
+
+### クリーンアップ
+| コマンド | 説明 |
+|---------|------|
+| `make clean` | Mac上のゴミ削除 (node_modules, __pycache__等) |
+| `make clean-all` | 完全削除 (ボリューム含む、⚠️データ消失注意) |
+
+### 情報表示
+| コマンド | 説明 |
+|---------|------|
+| `make info` | 利用可能MCPサーバー一覧 |
+| `make config` | Docker Compose設定表示 |
+
+### UI操作
+| コマンド | 説明 |
+|---------|------|
+| `make ui-build` | Settings UIイメージビルド |
+| `make ui-up` | Settings UI起動 |
+| `make ui-down` | Settings UI停止 |
+| `make ui-logs` | Settings UIログ表示 |
+| `make ui-shell` | Settings UIシェル |
+
+### API操作
+| コマンド | 説明 |
+|---------|------|
+| `make api-build` | APIイメージビルド |
+| `make api-logs` | APIログ表示 |
+| `make api-shell` | APIシェル (Bash) |
+
+### データベース
+| コマンド | 説明 |
+|---------|------|
+| `make db-migrate` | マイグレーション実行 |
+| `make db-shell` | PostgreSQLシェル |
+
+### テスト
+| コマンド | 説明 |
+|---------|------|
+| `make test` | 設定ファイル検証テスト実行 |
 
 ---
 
@@ -304,13 +346,32 @@ ln -sf ~/github/airis-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 
 ```
 airis-mcp-gateway/
-├── docker-compose.yml      # 全サービス（Gateway + MCPサーバー）
+├── docker-compose.yml      # 全サービス定義 (Gateway + DB + API + UI)
 ├── mcp-config.json         # Gateway設定（内部MCPサーバー）
 ├── mcp.json                # クライアント設定（エディタ側）
 ├── .env.example            # 環境変数テンプレート
-├── .env                    # 実際のシークレット（.gitignore済）
-├── Makefile                # ショートカット
-├── README.md               # English
+├── Makefile                # 標準化コマンド (makefile-global準拠)
+│
+├── apps/
+│   ├── api/                # FastAPI Backend
+│   │   ├── app/
+│   │   │   ├── api/        # APIエンドポイント
+│   │   │   ├── core/       # 暗号化・設定
+│   │   │   ├── crud/       # データベース操作
+│   │   │   ├── models/     # SQLAlchemyモデル
+│   │   │   └── schemas/    # Pydanticスキーマ
+│   │   ├── alembic/        # マイグレーション
+│   │   └── Dockerfile
+│   │
+│   └── settings/           # React + Vite UI
+│       ├── src/
+│       └── Dockerfile
+│
+├── tests/                  # 設定ファイル検証テスト
+│   ├── test_config.py
+│   └── conftest.py
+│
+├── README.md               # English (main)
 ├── README.ja.md            # 日本語
 └── SECRETS.md              # シークレット管理ガイド
 ```
@@ -321,27 +382,51 @@ airis-mcp-gateway/
 
 ### Gateway起動失敗
 ```bash
-docker logs airis-mcp-gateway
-```
+# Gateway ログ確認
+docker logs docker-mcp-gateway
 
-### 個別MCPサーバー問題
-```bash
-# Gatewayサーバー
-make logs
+# 全サービス状態確認
+make ps
 
-# npx起動サーバー（エディタコンソールにログ）
-# context7, mcp-postgres-server, stripe, twilio
-```
-
-### クリーン再起動
-```bash
+# クリーン再起動
 make clean
 make up
 ```
 
-### 実行中サービス確認
+### API/UI起動失敗
 ```bash
-make ps
+# API ログ確認
+make api-logs
+
+# UI ログ確認
+make ui-logs
+
+# データベース接続確認
+make db-shell
+```
+
+### 設定ファイル検証
+```bash
+# mcp-config.json と mcp.json の妥当性チェック
+make test
+```
+
+### 完全クリーンアップ
+```bash
+# ⚠️ 警告: 全データ削除（ボリューム含む）
+make clean-all
+make up
+```
+
+### 個別サービス確認
+```bash
+# 特定サービスログ
+make logs-mcp-gateway
+make logs-api
+make logs-postgres
+
+# コンテナ状態詳細
+docker compose ps
 ```
 
 ---
