@@ -1,13 +1,8 @@
 {
   "mcpServers": {
-    "docker-mcp-gateway": {
+    "airis-mcp-gateway": {
       "url": "http://localhost:9090/sse",
-      "description": "All MCP servers via unified Gateway (18 servers, Docker-contained, zero host pollution)"
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "description": "Library documentation search (editor-side npx - Docker version has bugs)"
+      "description": "All MCP servers via unified Gateway (25 servers, zero-token baseline, on-demand loading)"
     }
   }
 }

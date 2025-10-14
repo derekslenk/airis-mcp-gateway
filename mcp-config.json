@@ -2,7 +2,7 @@
   "mcpGateway": {
     "addr": ":9090",
     "baseURL": "http://localhost:9090",
-    "name": "Docker MCP Gateway",
+    "name": "AIRIS MCP Gateway",
     "version": "1.0.0",
     "type": "sse"
   },

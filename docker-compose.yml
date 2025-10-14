@@ -1,10 +1,10 @@
-name: docker-mcp-gateway
+name: airis-mcp-gateway
 
 services:
-  # Docker MCP Gateway - すべてのMCPサーバーを統合
+  # AIRIS MCP Gateway - すべてのMCPサーバーを統合
   mcp-gateway:
     image: docker/mcp-gateway:latest
-    container_name: docker-mcp-gateway
+    container_name: airis-mcp-gateway
     entrypoint: ["/docker-mcp"]
     command:
       - gateway
