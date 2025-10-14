@@ -1,96 +1,94 @@
 # 🌉 AIRIS MCP Gateway
 
-**25個のMCPサーバーを一元管理。トークン爆発とエディタ設定地獄を解決。**
+**Centralized management for 25 MCP servers. Solves token explosion and editor configuration hell.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
 
-> **Claude Code、Cursor、Windsurf、Zed**—全エディタで統一設定。一度構築すれば、どこでも使える。
-
-**[English README](./README.en.md)** | **[日本語 README](./README.ja.md)**
+> **Claude Code, Cursor, Windsurf, Zed**—Unified configuration across all editors. Build once, use everywhere.
 
 ---
 
-## 🚀 5分でスタート
+## 🚀 5-Minute Setup
 
 ```bash
-# 1. クローン
+# 1. Clone
 git clone https://github.com/kazukinakai/airis-mcp-gateway.git ~/github/airis-mcp-gateway
 cd ~/github/airis-mcp-gateway
 
-# 2. 起動
+# 2. Start
 make up
 
-# 3. エディタ接続
+# 3. Connect Editor
 ln -sf ~/github/airis-mcp-gateway/mcp.json ~/.claude/mcp.json
 
-# 4. エディタ再起動 → 完了 🎉
+# 4. Restart Editor → Done 🎉
 ```
 
-**今すぐ25個のMCPサーバーが使える状態に。**
+**25 MCP servers ready to use immediately.**
 
 ---
 
-## 💡 なぜAIRIS MCP Gatewayか？
+## 💡 Why AIRIS MCP Gateway?
 
-### 🎯 解決する問題
+### 🎯 Problems It Solves
 
-#### ❌ 問題1: トークン爆発
-- **大量のツール定義** → IDEが起動時に全ツール定義を読み込む
-- **パフォーマンス劣化** → トークン閾値を超えるとIDE動作が重くなる
-- **使わないツールで無駄** → 一度も使わないツールの定義で容量を圧迫
+#### ❌ Problem 1: Token Explosion
+- **Massive tool definitions** → IDE loads all tool definitions at startup
+- **Performance degradation** → IDE becomes slow when token threshold is exceeded
+- **Wasted resources** → Tool definitions you never use consume capacity
 
-#### ❌ 問題2: エディタ設定地獄
+#### ❌ Problem 2: Editor Configuration Hell
 ```
-Cursor     → mcp.json (独自フォーマット)
-Windsurf   → mcp.json (微妙に違う)
-Zed        → mcp.json (また違う)
-VS Code    → settings.json (完全に別物)
+Cursor     → mcp.json (proprietary format)
+Windsurf   → mcp.json (slightly different)
+Zed        → mcp.json (different again)
+VS Code    → settings.json (completely different)
 ```
-**結果**: エディタごとに別々のMCP設定 = メンテナンス地獄
+**Result**: Separate MCP configs per editor = Maintenance nightmare
 
-#### ❌ 問題3: プロジェクトごとの重複起動
-- 各プロジェクトがMCPサーバーを個別起動 → メモリ/CPU無駄
-- APIキーが複数の`.env`に散在 → セキュリティリスク
+#### ❌ Problem 3: Redundant Startup Per Project
+- Each project starts MCP servers individually → Wasted memory/CPU
+- API keys scattered across multiple `.env` files → Security risk
 
 ---
 
-### ✅ AIRIS MCP Gatewayの解決策
+### ✅ AIRIS MCP Gateway Solutions
 
-#### 🌟 メリット1: ゼロトークン起動
-- **IDEはGateway URLのみ認識** → ツール定義は送信されない（0トークン）
-- **オンデマンド読み込み** → 明示的にリクエストされたときだけ定義を取得
-- **実際に使うまで容量消費なし** → 無駄なリソース消費ゼロ
+#### 🌟 Benefit 1: Zero-Token Startup
+- **IDE recognizes only Gateway URL** → Tool definitions not sent (0 tokens)
+- **On-demand loading** → Definitions fetched only on explicit request
+- **No resource consumption until use** → Zero waste
 
-#### 🌟 メリット2: 一度定義で永続利用
-- **マスター設定ファイル** → `mcp.json`を全エディタ・全プロジェクトにsymlink
-- **更新が自動反映** → Gateway側で更新すれば全環境に即座に適用
-- **エディタ差異を吸収** → 各エディタの独自フォーマットを完全に隠蔽
+#### 🌟 Benefit 2: One-Time Setup, Persistent Use
+- **Master configuration file** → Symlink `mcp.json` across all editors and projects
+- **Auto-propagation** → Gateway updates apply instantly to all environments
+- **Editor abstraction** → Completely hides editor-specific format differences
 
-#### 🌟 メリット3: カスタマイズ自由
-- **MITライセンス** → 自由に改変・商用利用可能
-- **自分用サーバー追加** → `mcp-config.json`に追加するだけ
-- **既存サーバーのカスタム版** → 動作を変えたい場合も自由に調整
+#### 🌟 Benefit 3: Free Customization
+- **MIT License** → Free to modify and use commercially
+- **Add your own servers** → Just add to `mcp-config.json`
+- **Custom server variants** → Freely adjust behavior
 
-#### 🌟 メリット4: ホスト環境汚染ゼロ
-- **全サーバーがDockerコンテナ内実行** → Macホストは完全にクリーン
-- **npx/uvx不要** → Gateway内で完結、依存関係の競合なし
-- **削除も簡単** → `make clean`で完全クリーンアップ
+#### 🌟 Benefit 4: Zero Host Pollution
+- **All servers run in Docker containers** → Mac host stays completely clean
+- **No npx/uvx required** → Everything contained in Gateway, no dependency conflicts
+- **Easy cleanup** → `make clean` for complete removal
 
-#### 🌟 メリット5: プロジェクト切替が即座
-- **Gateway常駐** → プロジェクトを切り替えてもサーバーは起動済み
-- **ゼロダウンタイム** → 開発フローを中断しない
-- **統一体験** → どのプロジェクトでも同じツールセット
+#### 🌟 Benefit 5: Instant Project Switching
+- **Gateway always running** → Servers remain active when switching projects
+- **Zero downtime** → No interruption to development flow
+- **Unified experience** → Same toolset across all projects
 
-#### 🌟 メリット6: セキュリティ強化
-- **Docker secrets統合** → APIキーを暗号化してDockerに一元保存
-- **`.env`不要** → Git漏洩リスクを根本的に排除
-- **ランタイム注入のみ** → 平文での保存を回避
+#### 🌟 Benefit 6: Enhanced Security
+- **Docker secrets integration** → API keys encrypted and centrally stored in Docker
+- **No `.env` files** → Eliminates Git leak risk at the root
+- **Runtime injection only** → Avoids plaintext storage
 
 ---
 
-## 🏗️ アーキテクチャ
+## 🏗️ Architecture
 
 ```
 Claude Code / Cursor / Windsurf / Zed
@@ -98,17 +96,17 @@ Claude Code / Cursor / Windsurf / Zed
 Gateway (http://localhost:9090/sse)
 │
 ├─ 🎨 Settings UI (http://localhost:5173)
-│   └─ MCPサーバーのON/OFF切替、設定管理
+│   └─ Toggle MCP servers ON/OFF, configuration management
 │
 ├─ 🚀 FastAPI Backend (http://localhost:8001)
-│   ├─ /mcp-servers (MCPサーバー管理API)
-│   └─ /secrets (シークレット管理API・暗号化)
+│   ├─ /mcp-servers (MCP server management API)
+│   └─ /secrets (Secret management API with encryption)
 │
-├─ 🗄️ PostgreSQL (内部)
-│   ├─ mcp_servers (サーバー設定)
-│   └─ secrets (暗号化されたAPIキー)
+├─ 🗄️ PostgreSQL (internal)
+│   ├─ mcp_servers (server configuration)
+│   └─ secrets (encrypted API keys)
 │
-└─ 📦 MCPサーバー群 (25個)
+└─ 📦 MCP Server Fleet (25 servers)
     │
     ├─ 🔧 Core Tools
     │   ├─ time, fetch, git, memory
@@ -132,116 +130,116 @@ Gateway (http://localhost:9090/sse)
         ├─ serena, puppeteer, sentry
 ```
 
-**仕組み**:
-1. **IDEがGateway URLのみ認識** → ツール定義は送信されない（0トークン）
-2. **動的オンデマンドロード** → 明示的リクエスト時のみツール定義取得
-3. **単一設定ファイル** → `mcp.json`を全エディタ・プロジェクトにsymlink
-4. **UI/API統合** → フロントでポチポチ切替、PostgreSQLで暗号化保存
+**How it works**:
+1. **IDE recognizes only Gateway URL** → Tool definitions not sent (0 tokens)
+2. **Dynamic on-demand loading** → Definitions fetched only on explicit request
+3. **Single configuration file** → Symlink `mcp.json` across all editors/projects
+4. **UI/API integration** → Toggle via frontend, encrypted storage in PostgreSQL
 
 ---
 
-## 📦 利用可能なMCPサーバー (全25個)
+## 📦 Available MCP Servers (25 Total)
 
-### 🔧 コアツール
+### 🔧 Core Tools
 
-| サーバー | 説明 | 認証 |
-|---------|------|------|
-| **time** | 現在時刻・日付操作 | 不要 |
-| **fetch** | Webコンテンツ取得 | 不要 |
-| **git** | Gitリポジトリ操作 | 不要 |
-| **memory** | 永続的な知識ストレージ | 不要 |
-| **sequentialthinking** | 複雑な問題解決 | 不要 |
-| **context7** | ライブラリドキュメント検索 | 不要 |
-| **filesystem** | セキュアなファイル操作 | 不要 |
-| **brave-search** | Web/ニュース/画像/動画検索 | `BRAVE_API_KEY` |
-| **github** | GitHubリポジトリ操作 | `GITHUB_PERSONAL_ACCESS_TOKEN` |
+| Server | Description | Auth |
+|--------|-------------|------|
+| **time** | Current time & date operations | None |
+| **fetch** | Web content retrieval | None |
+| **git** | Git repository operations | None |
+| **memory** | Persistent knowledge storage | None |
+| **sequentialthinking** | Complex problem solving | None |
+| **context7** | Library documentation search | None |
+| **filesystem** | Secure file operations | None |
+| **brave-search** | Web/news/image/video search | `BRAVE_API_KEY` |
+| **github** | GitHub repository operations | `GITHUB_PERSONAL_ACCESS_TOKEN` |
 
-### 🧠 AI検索 & リサーチ
+### 🧠 AI Search & Research
 
-| サーバー | 説明 | 認証 |
-|---------|------|------|
-| **tavily** | AIエージェント用検索エンジン | `TAVILY_API_KEY` |
+| Server | Description | Auth |
+|--------|-------------|------|
+| **tavily** | AI agent search engine | `TAVILY_API_KEY` |
 
-### 🗄️ データベース
+### 🗄️ Databases
 
-| サーバー | 説明 | 認証 |
-|---------|------|------|
-| **supabase** | 公式Supabase統合 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
-| **mcp-postgres-server** | PostgreSQL操作（自己ホストSupabase） | `POSTGRES_CONNECTION_STRING` |
-| **mongodb** | MongoDB NoSQLデータベース | `MONGODB_CONNECTION_STRING` |
-| **sqlite** | SQLiteデータベース操作 | 不要 |
+| Server | Description | Auth |
+|--------|-------------|------|
+| **supabase** | Official Supabase integration | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
+| **mcp-postgres-server** | PostgreSQL operations (self-hosted Supabase) | `POSTGRES_CONNECTION_STRING` |
+| **mongodb** | MongoDB NoSQL database | `MONGODB_CONNECTION_STRING` |
+| **sqlite** | SQLite database operations | None |
 
-### 📊 生産性 & コラボレーション
+### 📊 Productivity & Collaboration
 
-| サーバー | 説明 | 認証 |
-|---------|------|------|
-| **notion** | Notionワークスペース統合 | `NOTION_API_KEY` |
-| **slack** | Slackワークスペース統合 | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
-| **figma** | Figmaデザインファイルアクセス | `FIGMA_ACCESS_TOKEN` |
+| Server | Description | Auth |
+|--------|-------------|------|
+| **notion** | Notion workspace integration | `NOTION_API_KEY` |
+| **slack** | Slack workspace integration | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` |
+| **figma** | Figma design file access | `FIGMA_ACCESS_TOKEN` |
 
-### 💳 決済 & API統合
+### 💳 Payments & API Integration
 
-| サーバー | 説明 | 認証 |
-|---------|------|------|
-| **stripe** | 決済API | `STRIPE_SECRET_KEY` |
-| **twilio** | 電話/SMS API | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
+| Server | Description | Auth |
+|--------|-------------|------|
+| **stripe** | Payment API | `STRIPE_SECRET_KEY` |
+| **twilio** | Phone/SMS API | `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY`, `TWILIO_API_SECRET` |
 
-### 🛠️ 開発ツール
+### 🛠️ Development Tools
 
-| サーバー | 説明 | 認証 |
-|---------|------|------|
-| **serena** | シンボル検索（Python/Go） | 不要 |
-| **puppeteer** | ブラウザ自動化とWebスクレイピング | 不要 |
-| **sentry** | エラー監視とデバッグ | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` |
+| Server | Description | Auth |
+|--------|-------------|------|
+| **serena** | Symbol search (Python/Go) | None |
+| **puppeteer** | Browser automation and web scraping | None |
+| **sentry** | Error monitoring and debugging | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` |
 
 ---
 
-## 🔐 セキュリティ（Docker secrets推奨）
+## 🔐 Security (Docker Secrets Recommended)
 
 ```bash
-# シークレット登録（初回のみ）
+# Register secrets (first time only)
 docker mcp secret set STRIPE_SECRET_KEY=sk_...
 docker mcp secret set TWILIO_ACCOUNT_SID=AC...
 docker mcp secret set FIGMA_ACCESS_TOKEN=figd_...
 
-# シークレット確認
+# List secrets
 docker mcp secret ls
 
-# シークレット削除
+# Remove secrets
 docker mcp secret rm STRIPE_SECRET_KEY
 ```
 
-**セキュリティメリット**:
-- ✅ Docker Desktopで暗号化保存
-- ✅ Gitコミット不可（漏洩リスクゼロ）
-- ✅ ランタイム注入のみ
-- ✅ OrbStack互換
+**Security Benefits**:
+- ✅ Encrypted storage in Docker Desktop
+- ✅ Cannot commit to Git (zero leak risk)
+- ✅ Runtime injection only
+- ✅ OrbStack compatible
 
-詳細は [SECRETS.md](./SECRETS.md) 参照。
+See [SECRETS.md](./SECRETS.md) for details.
 
 ---
 
-## 🎛️ サーバー有効化/無効化
+## 🎛️ Enable/Disable Servers
 
-**重要**: 全サーバーがGateway内で動作するため、`mcp-config.json`を編集。
+**Important**: All servers run inside Gateway, so edit `mcp-config.json`.
 
 ```bash
-# Gateway設定を編集
+# Edit Gateway configuration
 vim ~/github/airis-mcp-gateway/mcp-config.json
 ```
 
-**無効化**: サーバーエントリを削除またはコメントアウト
+**Disable**: Remove or comment out server entry
 ```json
 {
   "mcpServers": {
     "context7": { ... },
     "filesystem": { ... }
-    // "puppeteer": { ... }  ← コメントアウトまたは削除
+    // "puppeteer": { ... }  ← Comment out or remove
   }
 }
 ```
 
-**有効化**: `mcp-config.json`に追加
+**Enable**: Add to `mcp-config.json`
 ```json
 {
   "mcpServers": {
@@ -256,236 +254,235 @@ vim ~/github/airis-mcp-gateway/mcp-config.json
 }
 ```
 
-再起動:
+Restart:
 ```bash
 make restart
 ```
 
 ---
 
-## 🛠️ コマンド
+## 🛠️ Commands
 
-### 基本操作
-| コマンド | 説明 |
-|---------|------|
-| `make help` | 全コマンド一覧表示 |
-| `make up` | 全サービス起動 (Gateway + DB + API + UI) |
-| `make down` | 全サービス停止 |
-| `make restart` | サービス再起動 |
-| `make logs` | 全ログ表示 |
-| `make logs-<service>` | 特定サービスログ (例: `make logs-api`) |
-| `make ps` | コンテナ状態確認 |
+### Basic Operations
+| Command | Description |
+|---------|-------------|
+| `make help` | Show all available commands |
+| `make up` | Start all services (Gateway + DB + API + UI) |
+| `make down` | Stop all services |
+| `make restart` | Restart services |
+| `make logs` | Show all logs |
+| `make logs-<service>` | Show specific service logs (e.g., `make logs-api`) |
+| `make ps` | Show container status |
 
-### クリーンアップ
-| コマンド | 説明 |
-|---------|------|
-| `make clean` | Mac上のゴミ削除 (node_modules, __pycache__等) |
-| `make clean-all` | 完全削除 (ボリューム含む、⚠️データ消失注意) |
+### Cleanup
+| Command | Description |
+|---------|-------------|
+| `make clean` | Remove Mac host garbage (node_modules, __pycache__, etc.) |
+| `make clean-all` | Complete cleanup (includes volumes, ⚠️ data loss) |
 
-### 情報表示
-| コマンド | 説明 |
-|---------|------|
-| `make info` | 利用可能MCPサーバー一覧 |
-| `make config` | Docker Compose設定表示 |
+### Information
+| Command | Description |
+|---------|-------------|
+| `make info` | List available MCP servers |
+| `make config` | Show Docker Compose configuration |
 
-### UI操作
-| コマンド | 説明 |
-|---------|------|
-| `make ui-build` | Settings UIイメージビルド |
-| `make ui-up` | Settings UI起動 |
-| `make ui-down` | Settings UI停止 |
-| `make ui-logs` | Settings UIログ表示 |
-| `make ui-shell` | Settings UIシェル |
+### UI Operations
+| Command | Description |
+|---------|-------------|
+| `make ui-build` | Build Settings UI image |
+| `make ui-up` | Start Settings UI |
+| `make ui-down` | Stop Settings UI |
+| `make ui-logs` | Show Settings UI logs |
+| `make ui-shell` | Enter Settings UI shell |
 
-### API操作
-| コマンド | 説明 |
-|---------|------|
-| `make api-build` | APIイメージビルド |
-| `make api-logs` | APIログ表示 |
-| `make api-shell` | APIシェル (Bash) |
+### API Operations
+| Command | Description |
+|---------|-------------|
+| `make api-build` | Build API image |
+| `make api-logs` | Show API logs |
+| `make api-shell` | Enter API shell (Bash) |
 
-### データベース
-| コマンド | 説明 |
-|---------|------|
-| `make db-migrate` | マイグレーション実行 |
-| `make db-shell` | PostgreSQLシェル |
+### Database
+| Command | Description |
+|---------|-------------|
+| `make db-migrate` | Run database migrations |
+| `make db-shell` | Enter PostgreSQL shell |
 
-### テスト
-| コマンド | 説明 |
-|---------|------|
-| `make test` | 設定ファイル検証テスト実行 |
+### Testing
+| Command | Description |
+|---------|-------------|
+| `make test` | Run configuration validation tests |
 
 ---
 
-## 🌐 マルチエディタ & マルチプロジェクト対応
+## 🌐 Multi-Editor & Multi-Project Support
 
-### 統一管理
+### Unified Management
 
 ```
-~/github/airis-mcp-gateway/mcp.json (マスター設定)
+~/github/airis-mcp-gateway/mcp.json (master config)
     ↓ symlink
-├─ ~/.claude/mcp.json (Claude Codeグローバル)
-├─ ~/github/agiletec/mcp.json (agiletecプロジェクト)
-├─ ~/github/neural/mcp.json (neuralプロジェクト)
-└─ ~/github/storage-smart/mcp.json (storage-smartプロジェクト)
+├─ ~/.claude/mcp.json (Claude Code global)
+├─ ~/github/agiletec/mcp.json (agiletec project)
+├─ ~/github/neural/mcp.json (neural project)
+└─ ~/github/storage-smart/mcp.json (storage-smart project)
 ```
 
-**メリット**:
-- マスター設定更新 → 全エディタ・プロジェクトに自動反映
-- エディタごとの設定差異を吸収
-- プロジェクト切替時もMCPサーバーは常駐
+**Benefits**:
+- Master config updates → Auto-propagate to all editors and projects
+- Abstract editor-specific differences
+- Gateway stays resident when switching projects
 
-**プロジェクト追加**:
+**Add Project**:
 ```bash
 ln -sf ~/github/airis-mcp-gateway/mcp.json ~/github/your-project/mcp.json
 ```
 
 ---
 
-## 📁 ファイル構成
+## 📁 File Structure
 
 ```
 airis-mcp-gateway/
-├── docker-compose.yml      # 全サービス定義 (Gateway + DB + API + UI)
-├── mcp-config.json         # Gateway設定（内部MCPサーバー）
-├── mcp.json                # クライアント設定（エディタ側）
-├── .env.example            # 環境変数テンプレート
-├── Makefile                # 標準化コマンド (makefile-global準拠)
+├── docker-compose.yml      # All service definitions (Gateway + DB + API + UI)
+├── mcp-config.json         # Gateway configuration (internal MCP servers)
+├── mcp.json                # Client configuration (editor side)
+├── .env.example            # Environment variable template
+├── Makefile                # Standardized commands (makefile-global compliant)
 │
 ├── apps/
 │   ├── api/                # FastAPI Backend
 │   │   ├── app/
-│   │   │   ├── api/        # APIエンドポイント
-│   │   │   ├── core/       # 暗号化・設定
-│   │   │   ├── crud/       # データベース操作
-│   │   │   ├── models/     # SQLAlchemyモデル
-│   │   │   └── schemas/    # Pydanticスキーマ
-│   │   ├── alembic/        # マイグレーション
+│   │   │   ├── api/        # API endpoints
+│   │   │   ├── core/       # Encryption & configuration
+│   │   │   ├── crud/       # Database operations
+│   │   │   ├── models/     # SQLAlchemy models
+│   │   │   └── schemas/    # Pydantic schemas
+│   │   ├── alembic/        # Migrations
 │   │   └── Dockerfile
 │   │
 │   └── settings/           # React + Vite UI
 │       ├── src/
 │       └── Dockerfile
 │
-├── tests/                  # 設定ファイル検証テスト
+├── tests/                  # Configuration validation tests
 │   ├── test_config.py
 │   └── conftest.py
 │
-├── README.md               # English (main)
-├── README.ja.md            # 日本語
-└── SECRETS.md              # シークレット管理ガイド
+├── README.md               # This file
+└── SECRETS.md              # Secret management guide
 ```
 
 ---
 
-## 🐛 トラブルシューティング
+## 🐛 Troubleshooting
 
-### Gateway起動失敗
+### Gateway Startup Failure
 ```bash
-# Gateway ログ確認
+# Check Gateway logs
 docker logs docker-mcp-gateway
 
-# 全サービス状態確認
+# Check all service status
 make ps
 
-# クリーン再起動
+# Clean restart
 make clean
 make up
 ```
 
-### API/UI起動失敗
+### API/UI Startup Failure
 ```bash
-# API ログ確認
+# Check API logs
 make api-logs
 
-# UI ログ確認
+# Check UI logs
 make ui-logs
 
-# データベース接続確認
+# Check database connection
 make db-shell
 ```
 
-### 設定ファイル検証
+### Configuration File Validation
 ```bash
-# mcp-config.json と mcp.json の妥当性チェック
+# Validate mcp-config.json and mcp.json
 make test
 ```
 
-### 完全クリーンアップ
+### Complete Cleanup
 ```bash
-# ⚠️ 警告: 全データ削除（ボリューム含む）
+# ⚠️ Warning: Deletes all data (including volumes)
 make clean-all
 make up
 ```
 
-### 個別サービス確認
+### Individual Service Inspection
 ```bash
-# 特定サービスログ
+# Specific service logs
 make logs-mcp-gateway
 make logs-api
 make logs-postgres
 
-# コンテナ状態詳細
+# Detailed container status
 docker compose ps
 ```
 
 ---
 
-## 🔗 エディタ統合
+## 🔗 Editor Integration
 
-以下の操作後はエディタ再起動が必要:
-1. Gateway起動/停止
-2. `mcp.json`の変更
-3. 新しいMCPサーバー追加
+Restart editor after:
+1. Gateway start/stop
+2. `mcp.json` changes
+3. Adding new MCP servers
 
-Gatewayは常駐するため、プロジェクト切替時に再起動は不要。
+Gateway stays resident, no restart needed when switching projects.
 
 ---
 
-## 💖 サポート
+## 💖 Support
 
-このプロジェクトが役に立った場合、開発継続のためにサポートをお願いします:
+If this project helps you, please support continued development:
 
 ### ☕ Ko-fi
-継続的な開発支援
+Ongoing development support
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-ff5e5b?logo=kofi&logoColor=white)](https://ko-fi.com/kazukinakai)
 
 ### 🎯 Patreon
-月額支援で自立支援
+Monthly support for independence
 [![Patreon](https://img.shields.io/badge/Patreon-Support-f96854?logo=patreon&logoColor=white)](https://www.patreon.com/kazukinakai)
 
 ### 💜 GitHub Sponsors
-柔軟な支援体系
+Flexible support options
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsor-ea4aaa?logo=github&logoColor=white)](https://github.com/sponsors/kazukinakai)
 
-**サポートによって実現できること**:
-- 新しいMCPサーバーの追加
-- パフォーマンス最適化
-- ドキュメント充実
-- コミュニティサポート
+**Your support enables**:
+- Adding new MCP servers
+- Performance optimizations
+- Documentation enhancements
+- Community support
 
 ---
 
-## 🤝 コントリビューション
+## 🤝 Contributing
 
-IssueとPull Requestを歓迎します！
+Issues and Pull Requests welcome!
 
-1. リポジトリをフォーク
-2. フィーチャーブランチ作成（`git checkout -b feature/amazing`）
-3. 変更をコミット（`git commit -m 'Add amazing feature'`）
-4. ブランチにプッシュ（`git push origin feature/amazing`）
-5. Pull Request作成
-
----
-
-## 📄 ライセンス
-
-MIT License - 自由に利用可能
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Create Pull Request
 
 ---
 
-## 💬 作者
+## 📄 License
+
+MIT License - Free to use
+
+---
+
+## 💬 Author
 
 [@kazukinakai](https://github.com/kazukinakai)
 
-MCPサーバーのトークン爆発と設定地獄を解決するために作成しました。
+Created to solve MCP server token explosion and configuration hell.
