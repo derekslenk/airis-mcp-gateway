@@ -19,10 +19,19 @@
         "/workspace/github"
       ]
     },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
     "serena": {
-      "command": "uvx",
+      "command": "docker",
       "args": [
-        "--from", "git+https://github.com/oraios/serena",
+        "run",
+        "--rm",
+        "-i",
+        "--network", "airis-mcp-gateway_default",
+        "-v", "/Users/kazuki/github:/workspaces/projects:rw",
+        "ghcr.io/oraios/serena:latest",
         "serena", "start-mcp-server",
         "--context", "ide-assistant",
         "--enable-web-dashboard", "false",
@@ -37,9 +46,15 @@
       "command": "npx",
       "args": ["-y", "mcp-server-sqlite", "--db-path", "/app/data.db"]
     },
+    "mindbase": {
+      "command": "node",
+      "args": ["/workspace/github/airis-mcp-gateway/servers/mindbase/dist/index.js"],
+      "env": {
+        "MINDBASE_API_URL": "http://host.docker.internal:18002"
+      }
+    },
 
     "__comment_disabled": "=== DISABLED (auth required - enable via frontend UI) ===",
-    "__comment_context7": "context7 moved to mcp.json (editor-side npx) - Docker version has bugs",
 
     "__comment_ai_search": "=== AI SEARCH & RESEARCH ===",
     "__disabled_tavily": {

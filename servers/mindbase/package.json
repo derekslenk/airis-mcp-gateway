@@ -1,0 +1,28 @@
+{
+  "name": "@airis/mindbase-mcp-server",
+  "version": "1.0.0",
+  "description": "MindBase MCP Server - AI Conversation Knowledge Management",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "mindbase",
+    "ai-conversation",
+    "vector-search",
+    "pgvector"
+  ],
+  "author": "kazuki",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.2"
+  }
+}

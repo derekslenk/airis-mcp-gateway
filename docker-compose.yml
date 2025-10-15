@@ -12,7 +12,7 @@ services:
       - --transport=sse
       - --port=9090
       - --config=/etc/docker-mcp/config.json
-      - --servers=time,fetch,git,memory,sequentialthinking
+      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite
     ports:
       - "${GATEWAY_PORT:-9090}:9090"
     volumes:
@@ -21,8 +21,6 @@ services:
       - claude-memory:/app/memory
       - ./mcp-config.json:/etc/docker-mcp/config.json:ro
       - ./figma-catalog.yaml:/etc/docker-mcp/figma-catalog.yaml:ro
-    environment:
-      - DOCKER_MCP_SERVERS=time,fetch,git,memory,sequentialthinking
     labels:
       - "x-secret:STRIPE_API_KEY=/run/secrets/stripe_key"
       - "x-secret:TWILIO_ACCOUNT_SID=/run/secrets/twilio_sid"
@@ -94,6 +92,31 @@ services:
       start_period: 10s
 
 
+  # MindBase MCP Server Builder
+  # Builds TypeScript → dist/ (read-only artifact for MCP config)
+  mindbase-builder:
+    build:
+      context: ./servers/mindbase
+      dockerfile: Dockerfile
+    container_name: airis-mindbase-builder
+    volumes:
+      # Source (read-only)
+      - ./servers/mindbase/src:/app/src:ro
+      - ./servers/mindbase/tsconfig.json:/app/tsconfig.json:ro
+      - ./servers/mindbase/package.json:/app/package.json:ro
+      # Build output (write to host for MCP Server usage)
+      - ./servers/mindbase/dist:/app/dist:rw
+      # Dependencies (isolated in Docker)
+      - mindbase_node_modules:/app/node_modules
+    working_dir: /app
+    profiles:
+      - builder
+    command: >
+      sh -c "pnpm install --frozen-lockfile &&
+             pnpm build &&
+             echo '✅ MindBase MCP Server built: servers/mindbase/dist/' &&
+             sleep infinity"
+
   # Test runner - fast config validation only
   test:
     image: python:3.12-slim
@@ -110,4 +133,6 @@ volumes:
   claude-memory:
     driver: local
   postgres_data:
+    driver: local
+  mindbase_node_modules:
     driver: local

@@ -10,23 +10,33 @@
 
 ---
 
-## 🚀 5-Minute Setup
+## 🚀 Quick Install
 
 ```bash
-# 1. Clone
 git clone https://github.com/kazukinakai/airis-mcp-gateway.git ~/github/airis-mcp-gateway
 cd ~/github/airis-mcp-gateway
-
-# 2. Start
-make up
-
-# 3. Connect Editor
-ln -sf ~/github/airis-mcp-gateway/mcp.json ~/.claude/mcp.json
-
-# 4. Restart Editor → Done 🎉
+make install
 ```
 
-**25 MCP servers ready to use immediately.**
+**That's it!**
+
+Automatically installs to ALL editors:
+- ✅ Claude Code
+- ✅ Claude Desktop
+- ✅ Cursor
+- ✅ Zed
+
+Restart all editors → 25 MCP servers ready everywhere! 🎉
+
+---
+
+### Alternative: Gateway Only (No Editor Config)
+
+```bash
+make up  # Start Gateway without modifying editor configs
+```
+
+Use this if you want to manually configure editors or just run Gateway as a Docker container.
 
 ---
 
@@ -263,12 +273,18 @@ make restart
 
 ## 🛠️ Commands
 
+### Essential Commands
+| Command | Description |
+|---------|-------------|
+| `make install` | Install to ALL editors (Claude Desktop, Cursor, Zed, etc.) |
+| `make uninstall` | Restore original configs and stop Gateway |
+| `make up` | Start Gateway only (no editor config changes) |
+| `make down` | Stop all services |
+
 ### Basic Operations
 | Command | Description |
 |---------|-------------|
 | `make help` | Show all available commands |
-| `make up` | Start all services (Gateway + DB + API + UI) |
-| `make down` | Stop all services |
 | `make restart` | Restart services |
 | `make logs` | Show all logs |
 | `make logs-<service>` | Show specific service logs (e.g., `make logs-api`) |
@@ -380,7 +396,7 @@ airis-mcp-gateway/
 ### Gateway Startup Failure
 ```bash
 # Check Gateway logs
-docker logs docker-mcp-gateway
+docker logs airis-mcp-gateway
 
 # Check all service status
 make ps
@@ -483,6 +499,6 @@ MIT License - Free to use
 
 ## 💬 Author
 
-[@kazukinakai](https://github.com/kazukinakai)
+**Agiletec Inc.** ([@agiletec-inc](https://github.com/agiletec-inc))
 
 Created to solve MCP server token explosion and configuration hell.

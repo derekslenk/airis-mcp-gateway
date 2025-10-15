@@ -38,12 +38,9 @@ Verify the zero-token baseline and on-demand loading benefits of Gateway archite
 // ~/.claude/mcp.json (symlink to ~/github/airis-mcp-gateway/mcp.json)
 {
   "mcpServers": {
-    "docker-mcp-gateway": {
-      "url": "http://localhost:9090/sse"
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+    "airis-mcp-gateway": {
+      "url": "http://localhost:9090/sse",
+      "description": "All MCP servers via unified Gateway (25 servers, zero-token baseline, on-demand loading)"
     }
   }
 }
@@ -82,13 +79,11 @@ curl -s http://localhost:9090/ | head -5
 
 Expected Output (After - Gateway):
 ```
-1. docker-mcp-gateway  ✔ connected
-2. context7            ✔ connected
+1. airis-mcp-gateway  ✔ connected
 ```
 
 Expected Tool Count:
-- docker-mcp-gateway: **0 tools at startup** (on-demand loading)
-- context7: 2-3 tools (library documentation search)
+- airis-mcp-gateway: **0 tools at startup** (on-demand loading)
 
 ### Step 4: Verify On-Demand Loading
 
@@ -108,8 +103,8 @@ Test tool access through Gateway:
 
 | Metric | Before (Individual) | After (Gateway) | Improvement |
 |--------|--------------------|-----------------| ------------|
-| MCP Servers Registered | 8 | 2 (Gateway + context7) | -75% |
-| Tools at Startup | ~100+ | ~3 | -97% |
+| MCP Servers Registered | 8 | 1 (Gateway ONLY) | -87.5% |
+| Tools at Startup | ~100+ | 0 | -100% |
 | Startup Token Consumption | High | Zero-baseline | ~100% |
 | Tool Definition Load Time | All upfront | On-demand | Lazy loading |
 
@@ -164,7 +159,7 @@ Session Start → Gateway URL only (0 tools)
 ### Current Status: ✅ Ready for Testing
 
 **Preparation Complete**:
-- ✅ Gateway running (docker-mcp-gateway healthy)
+- ✅ Gateway running (airis-mcp-gateway healthy)
 - ✅ mcp.json configured correctly
 - ✅ Individual servers removed from ~/.claude.json
 - ✅ Tests passing (6/6 passed)
@@ -189,7 +184,7 @@ Startup Behavior: All tool definitions loaded
 ```
 Date: 2025-10-14
 Claude Code Version: [version]
-Number of MCP Servers: 2 (Gateway + context7)
+Number of MCP Servers: 1 (Gateway ONLY)
 Tools at Startup: [to measure via /mcp]
 Startup Behavior: [to observe]
 Gateway Response Time: [to measure]

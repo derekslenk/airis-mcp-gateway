@@ -2,7 +2,7 @@
 import os
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 
@@ -30,8 +30,8 @@ class EncryptionManager:
 
     def _create_fernet(self, master_key: str) -> Fernet:
         """Create Fernet cipher from master key"""
-        # Use PBKDF2 to derive a proper Fernet key
-        kdf = PBKDF2(
+        # Use PBKDF2HMAC to derive a proper Fernet key
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"airis-mcp-gateway-salt",  # Fixed salt for consistent keys

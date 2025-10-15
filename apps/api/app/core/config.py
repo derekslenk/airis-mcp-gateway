@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     # MCP Gateway
     MCP_CONFIG_PATH: Path = Path("/workspace/github/airis-mcp-gateway/mcp-config.json")
+    MCP_GATEWAY_URL: str = "http://mcp-gateway:9090"
 
     # API
     API_V1_PREFIX: str = "/api/v1"

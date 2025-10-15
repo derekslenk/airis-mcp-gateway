@@ -64,9 +64,9 @@ def test_gateway_mcp_json_valid():
     assert "mcpServers" in config, "mcpServers not in mcp.json"
 
     servers = config["mcpServers"]
-    assert "docker-mcp-gateway" in servers, "docker-mcp-gateway not configured"
+    assert "airis-mcp-gateway" in servers, "airis-mcp-gateway not configured"
 
-    gateway_cfg = servers["docker-mcp-gateway"]
+    gateway_cfg = servers["airis-mcp-gateway"]
     assert "url" in gateway_cfg, "Gateway URL not configured"
     assert gateway_cfg["url"] == "http://localhost:9090/sse", f"Unexpected Gateway URL: {gateway_cfg['url']}"
 
