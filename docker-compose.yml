@@ -162,6 +162,21 @@ services:
     profiles:
       - test
 
+  # Token Measurement - OpenMCP Pattern validation
+  measurement:
+    build:
+      context: ./tools/measurement
+      dockerfile: Dockerfile
+    container_name: airis-measurement
+    volumes:
+      - ./apps/api/logs:/app/logs:ro
+      - ./metrics:/app/metrics:rw
+      - ./docs/research:/app/docs/research:rw
+    working_dir: /app
+    command: python measure_token_reduction.py
+    profiles:
+      - measurement
+
 volumes:
   claude-memory:
     driver: local

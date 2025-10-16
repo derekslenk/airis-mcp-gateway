@@ -1,21 +1,28 @@
-import type { MCPServer } from '../../../lib/api';
 
 interface StatusIndicatorProps {
-  servers: MCPServer[];
+  label: string;
+  count: number;
+  total: number;
+  color: 'blue' | 'green' | 'red' | 'gray';
 }
 
-export function StatusIndicator({ servers }: StatusIndicatorProps) {
-  const activeCount = servers.filter(s => s.enabled).length;
-  const totalCount = servers.length;
+export function StatusIndicator({ label, count, total, color }: StatusIndicatorProps) {
+  const getColorClasses = () => {
+    switch (color) {
+      case 'blue': return 'text-blue-600 bg-blue-100';
+      case 'green': return 'text-green-600 bg-green-100';
+      case 'red': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-      <div className="flex items-center gap-1">
-        <div className={`w-2 h-2 rounded-full ${activeCount > 0 ? 'bg-green-400' : 'bg-gray-400'} animate-pulse`}></div>
-        <span className="text-white font-medium">{activeCount}</span>
-        <span className="text-white/70 text-sm">/ {totalCount}</span>
+    <div className="text-center">
+      <div className={`inline-flex items-center px-3 py-2 rounded-lg ${getColorClasses()}`}>
+        <span className="text-lg font-bold">{count}</span>
+        <span className="text-sm ml-1">/ {total}</span>
       </div>
-      <span className="text-white/70 text-sm">Active</span>
+      <p className="text-xs text-gray-600 mt-1 whitespace-nowrap">{label}</p>
     </div>
   );
 }

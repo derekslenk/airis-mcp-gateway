@@ -12,6 +12,7 @@ import json
 import asyncio
 from ...core.schema_partitioning import schema_partitioner
 from ...core.config import settings
+from ...core.protocol_logger import protocol_logger
 
 router = APIRouter()
 
@@ -50,10 +51,16 @@ async def proxy_sse_stream(request: Request):
                         if isinstance(data, dict) and data.get("method") == "initialize":
                             initialize_request_id = data.get("id")
                             print(f"[MCP Proxy] Detected initialize request (id={initialize_request_id})")
+                            # Log initialize request
+                            await protocol_logger.log_message("client→server", data, {"phase": "initialize"})
 
                         # tools/list レスポンスをインターセプト
                         if isinstance(data, dict) and data.get("method") == "tools/list":
+                            # Log tools/list request
+                            await protocol_logger.log_message("client→server", data, {"phase": "tools_list"})
                             data = await apply_schema_partitioning(data)
+                            # Log tools/list response (after partitioning)
+                            await protocol_logger.log_message("server→client", data, {"phase": "tools_list"})
 
                         # 変換後のデータを返す
                         yield f"data: {json.dumps(data)}\n\n"
@@ -65,6 +72,8 @@ async def proxy_sse_stream(request: Request):
                             data.get("id") == initialize_request_id):
 
                             print(f"[MCP Proxy] Detected initialize response, sending initialized notification")
+                            # Log initialize response
+                            await protocol_logger.log_message("server→client", data, {"phase": "initialize"})
 
                             # initialized notification を送信
                             initialized_notification = {
@@ -219,8 +228,14 @@ async def handle_expand_schema(rpc_request: Dict[str, Any]) -> Dict[str, Any]:
     tool_name = arguments.get("toolName")
     path = arguments.get("path")
 
+    # Log expandSchema request
+    await protocol_logger.log_message("client→server", rpc_request, {
+        "phase": "expand_schema",
+        "tool_name": tool_name
+    })
+
     if not tool_name:
-        return {
+        error_response = {
             "jsonrpc": "2.0",
             "id": rpc_request.get("id"),
             "error": {
@@ -228,12 +243,17 @@ async def handle_expand_schema(rpc_request: Dict[str, Any]) -> Dict[str, Any]:
                 "message": "toolName is required"
             }
         }
+        await protocol_logger.log_message("server→client", error_response, {
+            "phase": "expand_schema",
+            "tool_name": tool_name
+        })
+        return error_response
 
     # フルスキーマから該当パスを取得
     expanded_schema = schema_partitioner.expand_schema(tool_name, path)
 
     if expanded_schema is None:
-        return {
+        error_response = {
             "jsonrpc": "2.0",
             "id": rpc_request.get("id"),
             "error": {
@@ -241,8 +261,13 @@ async def handle_expand_schema(rpc_request: Dict[str, Any]) -> Dict[str, Any]:
                 "message": f"Schema not found for tool: {tool_name}"
             }
         }
+        await protocol_logger.log_message("server→client", error_response, {
+            "phase": "expand_schema",
+            "tool_name": tool_name
+        })
+        return error_response
 
-    return {
+    success_response = {
         "jsonrpc": "2.0",
         "id": rpc_request.get("id"),
         "result": {
@@ -254,3 +279,11 @@ async def handle_expand_schema(rpc_request: Dict[str, Any]) -> Dict[str, Any]:
             ]
         }
     }
+
+    # Log expandSchema response
+    await protocol_logger.log_message("server→client", success_response, {
+        "phase": "expand_schema",
+        "tool_name": tool_name
+    })
+
+    return success_response

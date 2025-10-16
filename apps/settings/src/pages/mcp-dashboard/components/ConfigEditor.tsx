@@ -69,22 +69,22 @@ export function ConfigEditor({ servers }: ConfigEditorProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+    <div className="bg-white rounded-lg border p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-900">
           <i className="ri-code-line mr-2 text-blue-600"></i>
           設定ファイル生成
         </h3>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {[
-            { key: 'claude', label: 'Claude Desktop' },
+            { key: 'claude', label: 'Claude' },
             { key: 'cursor', label: 'Cursor' },
             { key: 'json', label: 'JSON' }
           ].map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setSelectedFormat(key as any)}
-              className={`px-3 py-1 text-sm rounded-lg transition-colors whitespace-nowrap ${
+              className={`px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
                 selectedFormat === key
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -97,29 +97,28 @@ export function ConfigEditor({ servers }: ConfigEditorProps) {
       </div>
 
       <div className="relative">
-        <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto border max-h-96 overflow-y-auto">
+        <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto border max-h-64 overflow-y-auto">
           <code className="text-gray-800">{generateConfig()}</code>
         </pre>
         <button
           onClick={copyToClipboard}
-          className="absolute top-2 right-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors whitespace-nowrap"
+          className="absolute top-2 right-2 px-2 py-1 bg-gray-900 text-white text-xs rounded hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
           <i className="ri-file-copy-line mr-1"></i>
           コピー
         </button>
       </div>
 
-      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2">設定ファイルの配置場所</h4>
-        <div className="text-sm text-blue-800 space-y-1">
+      <div className="mt-3 p-3 bg-blue-50 rounded text-xs">
+        <div className="text-blue-800">
           {selectedFormat === 'claude' && (
-            <p><strong>Claude Desktop:</strong> ~/.claude/claude_desktop_config.json</p>
+            <span><strong>配置先:</strong> ~/.claude/claude_desktop_config.json</span>
           )}
           {selectedFormat === 'cursor' && (
-            <p><strong>Cursor:</strong> 設定 &gt; Extensions &gt; MCP Servers</p>
+            <span><strong>配置先:</strong> 設定 &gt; MCP Servers</span>
           )}
           {selectedFormat === 'json' && (
-            <p><strong>カスタム:</strong> 任意の場所に保存してアプリケーションで読み込み</p>
+            <span><strong>配置先:</strong> 任意の場所に保存</span>
           )}
         </div>
       </div>

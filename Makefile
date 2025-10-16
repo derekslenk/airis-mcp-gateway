@@ -7,6 +7,10 @@
 .DEFAULT_GOAL := help
 
 # ========== Environment Settings ==========
+# Load .env file for port configurations
+-include .env
+export
+
 export COMPOSE_DOCKER_CLI_BUILD := 1
 export DOCKER_BUILDKIT := 1
 
@@ -265,6 +269,36 @@ test: ## Run tests in Docker
 	@echo "$(BLUE)🧪 Running tests in Docker...$(NC)"
 	@docker compose run --rm test
 	@echo "$(GREEN)✅ Tests completed$(NC)"
+
+# ========== Token Measurement ==========
+
+.PHONY: measure-tokens
+measure-tokens: ## Measure token reduction (OpenMCP Pattern validation)
+	@echo "$(BLUE)📊 Measuring token reduction...$(NC)"
+	@if [ ! -f apps/api/logs/protocol_messages.jsonl ]; then \
+		echo "$(RED)❌ No protocol log found$(NC)"; \
+		echo ""; \
+		echo "$(YELLOW)Please ensure:$(NC)"; \
+		echo "  1. Gateway is running: make up"; \
+		echo "  2. Claude Desktop/Code is connected"; \
+		echo "  3. Some MCP operations have been performed"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✅ Protocol log found$(NC)"
+	@docker compose --profile measurement run --rm measurement
+	@echo ""
+	@echo "$(GREEN)📄 Report generated:$(NC)"
+	@cat docs/research/token_measurement_report.md
+	@echo ""
+	@echo "$(BLUE)📊 Metrics saved:$(NC) metrics/token_measurement.json"
+
+.PHONY: measure-clear
+measure-clear: ## Clear measurement logs and start fresh
+	@echo "$(YELLOW)🧹 Clearing measurement logs...$(NC)"
+	@rm -f apps/api/logs/protocol_messages.jsonl
+	@rm -f metrics/token_measurement.json
+	@rm -f docs/research/token_measurement_report.md
+	@echo "$(GREEN)✅ Logs cleared - ready for new measurement$(NC)"
 
 # ========== Claude Code Integration ==========
 

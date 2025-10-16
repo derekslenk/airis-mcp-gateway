@@ -1,0 +1,32 @@
+{
+  "name": "airis-mcp-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AIRIS MCP Gateway - Unified MCP server management",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @airis/settings dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai",
+    "gateway"
+  ],
+  "author": "Kazuki Nakai",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
