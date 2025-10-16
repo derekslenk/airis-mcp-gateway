@@ -3,7 +3,10 @@ name: airis-mcp-gateway
 services:
   # AIRIS MCP Gateway - すべてのMCPサーバーを統合
   mcp-gateway:
-    image: docker/mcp-gateway:latest
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    image: airis/mcp-gateway:latest
     container_name: airis-mcp-gateway
     entrypoint: ["/docker-mcp"]
     command:
@@ -12,7 +15,7 @@ services:
       - --transport=sse
       - --port=9090
       - --config=/etc/docker-mcp/config.json
-      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite
+      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite,mindbase
     ports:
       - "${GATEWAY_PORT:-9090}:9090"
     volumes:
