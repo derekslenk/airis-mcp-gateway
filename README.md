@@ -329,6 +329,177 @@ make restart
 |---------|-------------|
 | `make test` | Run configuration validation tests |
 
+### Profile Management
+| Command | Description |
+|---------|-------------|
+| `make profile-list` | List available profiles |
+| `make profile-info` | Show current profile configuration |
+| `make profile-recommended` | Switch to Recommended profile |
+| `make profile-minimal` | Switch to Minimal profile |
+
+---
+
+## 📦 MCP Server Profiles
+
+AIRIS MCP Gateway provides **3 curated profiles** to optimize your development workflow based on project needs and resource constraints.
+
+### 🎯 Profile Comparison
+
+| Profile | Servers | Memory | Use Case |
+|---------|---------|--------|----------|
+| **Recommended** | filesystem, context7, serena, mindbase | ~500MB | Long-term projects, LLM failure learning |
+| **Minimal** | filesystem, context7 | ~50MB | Short tasks, resource constraints |
+| **Custom** | User-defined | Variable | Specialized needs |
+
+---
+
+### 1. 📦 Recommended Profile (Default)
+
+**For**: Long-term projects, production development
+
+**Included Servers**:
+- Built-in: `time`, `fetch`, `git`, `memory`, `sequentialthinking`
+- Gateway: `filesystem`, `context7`, `serena`, `mindbase`
+
+**Key Features**:
+- ✅ **Short + Long-term Memory**: `memory` (Built-in) + `mindbase` (persistent conversation history)
+- ✅ **LLM Failure Prevention**: `mindbase` tracks errors and prevents repeated mistakes
+- ✅ **Code Understanding**: `serena` provides semantic search across codebases
+- ✅ **Latest Documentation**: `context7` accesses 15,000+ library docs
+
+**Resource Usage**: ~500MB (includes PostgreSQL + Ollama embedding)
+
+```bash
+make profile-recommended
+make restart
+```
+
+---
+
+### 2. 📦 Minimal Profile
+
+**For**: Quick tasks, resource-constrained environments, experiments
+
+**Included Servers**:
+- Built-in: `time`, `fetch`, `git`, `memory`, `sequentialthinking`
+- Gateway: `filesystem`, `context7`
+
+**Key Features**:
+- ✅ **Lightweight & Fast**: ~50MB memory usage
+- ✅ **Essential Functions**: Short-term memory, file access, latest docs
+- ✅ **Token Efficient**: Minimal server count reduces token overhead
+
+**Tradeoffs**:
+- ❌ No long-term memory (mindbase disabled)
+- ❌ No code understanding (serena disabled)
+- ❌ No LLM failure learning
+
+**Resource Usage**: ~50MB
+
+```bash
+make profile-minimal
+make restart
+```
+
+---
+
+### 3. 📦 Custom Profile
+
+**For**: Specialized workflows requiring specific server combinations
+
+**Base**: Start with Recommended or Minimal, then selectively enable:
+
+**Optional Servers**:
+- `puppeteer` - E2E testing, browser automation
+- `sqlite` - Local database operations
+- `tavily` - Web search (requires `TAVILY_API_KEY`)
+- `supabase` - Supabase database integration
+- `github` - GitHub operations (requires `GITHUB_PERSONAL_ACCESS_TOKEN`)
+
+**Create Custom Profile**:
+```bash
+# Copy template
+cp profiles/recommended.json profiles/custom.json
+
+# Edit configuration
+vim profiles/custom.json
+
+# Apply (manual edit mcp-config.json)
+vim mcp-config.json
+make restart
+```
+
+---
+
+### 🧠 Memory Architecture: Why Recommended?
+
+**memory (Built-in)** vs **mindbase (Gateway Docker)**
+
+| Feature | Minimal | Recommended |
+|---------|---------|-------------|
+| **Short-term memory** | ✅ memory | ✅ memory |
+| **Long-term memory** | ❌ None | ✅ mindbase |
+| **Failure learning** | ❌ None | ✅ mindbase (`error` category) |
+| **Progress tracking** | ❌ None | ✅ mindbase (`decision`, `progress`) |
+| **Code understanding** | ❌ None | ✅ serena (semantic search) |
+
+**Recommended Profile Advantages**:
+- **LLM Failure Prevention**: mindbase records errors (`category: error`) and prevents Claude from repeating the same mistakes
+- **Decision Tracking**: mindbase tracks latest decisions (`category: decision`) for consistent judgment
+- **Semantic Search**: mindbase + serena enable conversation history search and code understanding
+- **Time-series Management**: mindbase maintains session hierarchy and temporal decay
+
+**When to Choose Minimal**:
+- Short-term tasks (< 1 day)
+- Resource-constrained environments
+- Simple scripts or experiments
+- Token efficiency is critical
+
+---
+
+### 📋 Profile Selection Guide
+
+| Situation | Profile | Reason |
+|-----------|---------|--------|
+| Long-term development project | Recommended | Memory + Learning features |
+| Short task or experiment | Minimal | Lightweight, fast |
+| Resource-constrained environment | Minimal | ~50MB memory usage |
+| LLM keeps repeating mistakes | Recommended | mindbase error tracking |
+| Need code understanding | Recommended | serena semantic search |
+| Need conversation history | Recommended | mindbase persistent storage |
+| E2E testing required | Custom | Add puppeteer |
+| Working with Supabase | Custom | Add supabase |
+
+---
+
+### 🔄 Switching Profiles
+
+```bash
+# Check current profile
+make profile-info
+
+# List available profiles
+make profile-list
+
+# Switch to Recommended
+make profile-recommended
+make restart
+
+# Switch to Minimal
+make profile-minimal
+make restart
+```
+
+**Important**: Always run `make restart` after switching profiles to apply changes.
+
+---
+
+### 📚 Learn More
+
+- **[profiles/README.md](profiles/README.md)** - Detailed profile documentation
+- **[docs/mcp-best-practices.md](docs/mcp-best-practices.md)** - Memory architecture & best practices
+- **[MindBase Repository](https://github.com/kazukinakai/mindbase)** - Long-term memory system
+
 ---
 
 ## 🌐 Multi-Editor & Multi-Project Support

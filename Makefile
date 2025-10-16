@@ -102,6 +102,91 @@ info: ## Show available MCP servers
 config: ## Show effective docker compose configuration
 	@docker compose config
 
+# ========== Profile Management ==========
+
+.PHONY: profile-list
+profile-list: ## List available profiles
+	@echo "$(BLUE)📦 Available Profiles:$(NC)"
+	@echo ""
+	@echo "$(GREEN)1. Recommended$(NC) (recommended.json)"
+	@cat profiles/recommended.json | jq -r '.description' | sed 's/^/     /'
+	@echo "     Servers: filesystem, context7, serena, mindbase"
+	@echo "     Resource: ~500MB"
+	@echo ""
+	@echo "$(GREEN)2. Minimal$(NC) (minimal.json)"
+	@cat profiles/minimal.json | jq -r '.description' | sed 's/^/     /'
+	@echo "     Servers: filesystem, context7"
+	@echo "     Resource: ~50MB"
+	@echo ""
+	@echo "$(YELLOW)Current profile:$(NC) $$($(MAKE) --no-print-directory profile-info-short)"
+	@echo ""
+	@echo "$(BLUE)Switch:$(NC) make profile-recommended | make profile-minimal"
+
+.PHONY: profile-info
+profile-info: ## Show current profile configuration
+	@echo "$(BLUE)📊 Current Profile Configuration:$(NC)"
+	@echo ""
+	@if grep -q '"serena":' mcp-config.json | grep -v '__disabled'; then \
+		echo "$(GREEN)✅ Profile: Recommended$(NC)"; \
+		echo "   - filesystem, context7, serena, mindbase"; \
+		echo "   - Memory: ~500MB"; \
+		echo "   - Features: 短期+長期記憶, コード理解, LLM暴走防止"; \
+	else \
+		echo "$(GREEN)✅ Profile: Minimal$(NC)"; \
+		echo "   - filesystem, context7"; \
+		echo "   - Memory: ~50MB"; \
+		echo "   - Features: 必須機能のみ"; \
+	fi
+	@echo ""
+	@echo "$(BLUE)Active Servers:$(NC)"
+	@grep -A 2 '"mcpServers"' mcp-config.json | grep -o '"[^"]*":' | sed 's/[":,]//g' | tail -n +2 | grep -v '^__' | sed 's/^/  - /'
+
+.PHONY: profile-info-short
+profile-info-short:
+	@if grep -q '"serena":' mcp-config.json | grep -v '__disabled'; then \
+		echo "Recommended"; \
+	else \
+		echo "Minimal"; \
+	fi
+
+.PHONY: profile-recommended
+profile-recommended: ## Switch to Recommended profile (filesystem, context7, serena, mindbase)
+	@echo "$(BLUE)🔄 Switching to Recommended profile...$(NC)"
+	@if grep -q '"__disabled_serena":' mcp-config.json; then \
+		sed -i '' 's/"__disabled_serena":/"serena":/g' mcp-config.json; \
+		echo "$(GREEN)✅ Enabled: serena$(NC)"; \
+	fi
+	@if grep -q '"__disabled_mindbase":' mcp-config.json; then \
+		sed -i '' 's/"__disabled_mindbase":/"mindbase":/g' mcp-config.json; \
+		echo "$(GREEN)✅ Enabled: mindbase$(NC)"; \
+	fi
+	@echo "$(BLUE)📋 Profile: Recommended$(NC)"
+	@echo "   - filesystem, context7, serena, mindbase"
+	@echo "   - Memory: ~500MB"
+	@echo "   - Features: 短期+長期記憶, コード理解, LLM暴走防止"
+	@echo ""
+	@echo "$(YELLOW)⚠️  Gateway restart required$(NC)"
+	@echo "$(BLUE)Run: make restart$(NC)"
+
+.PHONY: profile-minimal
+profile-minimal: ## Switch to Minimal profile (filesystem, context7 only)
+	@echo "$(BLUE)🔄 Switching to Minimal profile...$(NC)"
+	@if grep -q '"serena":' mcp-config.json | grep -v '__disabled'; then \
+		sed -i '' 's/"serena":/"__disabled_serena":/g' mcp-config.json; \
+		echo "$(YELLOW)🔴 Disabled: serena$(NC)"; \
+	fi
+	@if grep -q '"mindbase":' mcp-config.json | grep -v '__disabled'; then \
+		sed -i '' 's/"mindbase":/"__disabled_mindbase":/g' mcp-config.json; \
+		echo "$(YELLOW)🔴 Disabled: mindbase$(NC)"; \
+	fi
+	@echo "$(BLUE)📋 Profile: Minimal$(NC)"
+	@echo "   - filesystem, context7"
+	@echo "   - Memory: ~50MB"
+	@echo "   - Features: 必須機能のみ"
+	@echo ""
+	@echo "$(YELLOW)⚠️  Gateway restart required$(NC)"
+	@echo "$(BLUE)Run: make restart$(NC)"
+
 # ========== Settings UI ==========
 
 .PHONY: ui-build

@@ -1,0 +1,28 @@
+{
+  "name": "@airis/self-management-mcp-server",
+  "version": "1.0.0",
+  "description": "AIRIS MCP Gateway Self-Management Server - Dynamic MCP server enable/disable control",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "self-management",
+    "gateway",
+    "orchestration",
+    "token-optimization"
+  ],
+  "author": "kazuki",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.2"
+  }
+}

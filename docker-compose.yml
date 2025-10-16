@@ -15,7 +15,7 @@ services:
       - --transport=sse
       - --port=9090
       - --config=/etc/docker-mcp/config.json
-      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite,mindbase
+      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite,mindbase,self-management
     ports:
       - "${GATEWAY_PORT}:9090"
     volumes:
@@ -126,6 +126,30 @@ services:
              echo '✅ MindBase MCP Server built: servers/mindbase/dist/' &&
              sleep infinity"
 
+  # Self-Management MCP Server Builder
+  self-management-builder:
+    build:
+      context: ./servers/self-management
+      dockerfile: Dockerfile
+    container_name: airis-self-management-builder
+    volumes:
+      # Source (read-only)
+      - ./servers/self-management/src:/app/src:ro
+      - ./servers/self-management/tsconfig.json:/app/tsconfig.json:ro
+      - ./servers/self-management/package.json:/app/package.json:ro
+      # Build output (write to host for MCP Server usage)
+      - ./servers/self-management/dist:/app/dist:rw
+      # Dependencies (isolated in Docker)
+      - self_management_node_modules:/app/node_modules
+    working_dir: /app
+    profiles:
+      - builder
+    command: >
+      sh -c "npm install &&
+             npm run build &&
+             echo '✅ Self-Management MCP Server built: servers/self-management/dist/' &&
+             sleep infinity"
+
   # Test runner - fast config validation only
   test:
     image: python:3.12-slim
@@ -144,4 +168,6 @@ volumes:
   postgres_data:
     driver: local
   mindbase_node_modules:
+    driver: local
+  self_management_node_modules:
     driver: local

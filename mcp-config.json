@@ -7,6 +7,12 @@
     "type": "sse"
   },
   "mcpServers": {
+    "__comment_profiles": "=== PROFILES (see profiles/ directory) ===",
+    "__comment_profiles_recommended": "Recommended: filesystem, context7, serena, mindbase (長期プロジェクト向け)",
+    "__comment_profiles_minimal": "Minimal: filesystem, context7 (軽量・高速)",
+    "__comment_profiles_custom": "Custom: 選択的有効化（UI or profiles/custom.json）",
+    "__comment_profiles_switch": "切り替え: make profile-recommended | make profile-minimal",
+
     "__comment_builtin": "=== BUILT-IN SERVERS (enabled via --servers flag) ===",
     "__comment_builtin_list": "time, fetch, git, memory, sequentialthinking",
 
@@ -55,6 +61,20 @@
         "--network", "airis-mcp-gateway_default",
         "-e", "MINDBASE_API_URL=http://host.docker.internal:18002",
         "-v", "/Users/kazuki/github/airis-mcp-gateway/servers/mindbase:/app:ro",
+        "-w", "/app",
+        "node:24-alpine",
+        "node", "dist/index.js"
+      ]
+    },
+    "self-management": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--network", "airis-mcp-gateway_default",
+        "-e", "GATEWAY_API_URL=http://host.docker.internal:9090/api",
+        "-v", "/Users/kazuki/github/airis-mcp-gateway/servers/self-management:/app:ro",
         "-w", "/app",
         "node:24-alpine",
         "node", "dist/index.js"
