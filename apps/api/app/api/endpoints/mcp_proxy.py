@@ -26,6 +26,8 @@ async def proxy_sse_stream(request: Request):
     Yields:
         Server-Sent Events
     """
+    initialize_request_id = None  # initialize リクエストIDを追跡
+
     async with httpx.AsyncClient(timeout=None) as client:
         async with client.stream(
             "GET",
@@ -44,12 +46,35 @@ async def proxy_sse_stream(request: Request):
                     try:
                         data = json.loads(data_str)
 
+                        # initialize リクエストを検出
+                        if isinstance(data, dict) and data.get("method") == "initialize":
+                            initialize_request_id = data.get("id")
+                            print(f"[MCP Proxy] Detected initialize request (id={initialize_request_id})")
+
                         # tools/list レスポンスをインターセプト
                         if isinstance(data, dict) and data.get("method") == "tools/list":
                             data = await apply_schema_partitioning(data)
 
                         # 変換後のデータを返す
                         yield f"data: {json.dumps(data)}\n\n"
+
+                        # initialize responseを検出したら initialized notification を送信
+                        if (isinstance(data, dict) and
+                            "result" in data and
+                            initialize_request_id is not None and
+                            data.get("id") == initialize_request_id):
+
+                            print(f"[MCP Proxy] Detected initialize response, sending initialized notification")
+
+                            # initialized notification を送信
+                            initialized_notification = {
+                                "jsonrpc": "2.0",
+                                "method": "notifications/initialized"
+                            }
+                            yield f"data: {json.dumps(initialized_notification)}\n\n"
+
+                            # リクエストIDをリセット
+                            initialize_request_id = None
 
                     except json.JSONDecodeError:
                         # JSONでない場合はそのまま
