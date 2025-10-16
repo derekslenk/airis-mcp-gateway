@@ -17,7 +17,7 @@ services:
       - --config=/etc/docker-mcp/config.json
       - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite,mindbase
     ports:
-      - "${GATEWAY_PORT:-9090}:9090"
+      - "${GATEWAY_PORT}:9090"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /Users/kazuki/github:/workspace/github:rw
@@ -32,7 +32,7 @@ services:
       - "x-secret:FIGMA_ACCESS_TOKEN=/run/secrets/figma_token"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9030/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -63,7 +63,7 @@ services:
       dockerfile: Dockerfile
     container_name: airis-api
     ports:
-      - "${API_PORT:-8001}:8000"
+      - "${API_PORT}:8000"
     volumes:
       - /Users/kazuki/github:/workspace/github:ro
       - ./apps/api/app:/app/app:rw
@@ -74,6 +74,12 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Settings UI - React + Vite frontend
   settings-ui:
@@ -82,7 +88,7 @@ services:
       dockerfile: Dockerfile
     container_name: airis-settings-ui
     ports:
-      - "${UI_PORT:-5173}:80"
+      - "${UI_PORT}:80"
     depends_on:
       - mcp-gateway
       - api

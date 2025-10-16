@@ -3,6 +3,7 @@ import { MCPServerCard } from './components/MCPServerCard';
 import { ConfigEditor } from './components/ConfigEditor';
 import { StatusIndicator } from './components/StatusIndicator';
 import { apiClient, MCPServer } from '../../lib/api';
+import { requiresApiKeys } from '../../lib/serverConfig';
 
 export default function MCPDashboard() {
   const [servers, setServers] = useState<MCPServer[]>([]);
@@ -109,84 +110,101 @@ export default function MCPDashboard() {
     );
   }
 
-  // Organize servers by category
-  const serversByCategory: Record<string, MCPServer[]> = {};
-  servers.forEach(server => {
-    const category = server.category || 'Other';
-    if (!serversByCategory[category]) {
-      serversByCategory[category] = [];
-    }
-    serversByCategory[category].push(server);
-  });
-
-  // Sort categories for display
-  const categoryOrder = [
-    'Gateway NPX',
-    'Docker Server',
-    'AI Search & Research',
-    'Database & Backend',
-    'Productivity & Collaboration',
-    'Payment & API',
-    'Development Tools',
-    'custom',
-    'Other',
-  ];
-
-  const sortedCategories = Object.keys(serversByCategory).sort((a, b) => {
-    const indexA = categoryOrder.indexOf(a);
-    const indexB = categoryOrder.indexOf(b);
-    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexA - indexB;
-  });
+  // Organize servers by status
+  const activeServers = servers.filter(s => s.enabled);
+  const needsApiKeys = servers.filter(s => !s.enabled && requiresApiKeys(s.name));
+  const readyToEnable = servers.filter(s => !s.enabled && !requiresApiKeys(s.name));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">MCP Server Dashboard</h1>
-            <p className="text-slate-300">Manage your MCP servers and API keys (encrypted)</p>
+            <h1 className="text-3xl font-bold text-white mb-1">MCP Server Dashboard</h1>
+            <p className="text-sm text-slate-300">Manage your MCP servers and API keys (encrypted)</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <StatusIndicator servers={servers} />
             <button
               onClick={exportConfig}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              className="px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
             >
               Edit JSON Config
             </button>
           </div>
         </div>
 
-        {/* Servers organized by category */}
-        {sortedCategories.map(category => {
-          const categoryServers = serversByCategory[category];
-          if (!categoryServers || categoryServers.length === 0) return null;
+        {/* Active Servers */}
+        {activeServers.length > 0 && (
+          <section className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+              <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+              アクティブ
+              <span className="ml-2 text-sm font-normal text-slate-400">
+                ({activeServers.length}個)
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {activeServers.map(server => (
+                <MCPServerCard
+                  key={server.id}
+                  server={server}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onSecretsUpdated={handleSecretsUpdated}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
-          return (
-            <section key={category} className="mb-12">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                {category === 'custom' ? 'Custom Servers' : category}
-                <span className="ml-2 text-sm font-normal text-slate-400">
-                  ({categoryServers.filter(s => s.enabled).length}/{categoryServers.length} active)
-                </span>
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {categoryServers.map(server => (
-                  <MCPServerCard
-                    key={server.id}
-                    server={server}
-                    onToggle={handleToggle}
-                    onDelete={handleDelete}
-                    onSecretsUpdated={handleSecretsUpdated}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })}
+        {/* Needs API Keys */}
+        {needsApiKeys.length > 0 && (
+          <section className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+              <span className="w-3 h-3 bg-amber-500 rounded-full"></span>
+              APIキー設定待ち
+              <span className="ml-2 text-sm font-normal text-slate-400">
+                ({needsApiKeys.length}個)
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {needsApiKeys.map(server => (
+                <MCPServerCard
+                  key={server.id}
+                  server={server}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onSecretsUpdated={handleSecretsUpdated}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Ready to Enable */}
+        {readyToEnable.length > 0 && (
+          <section className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+              <span className="w-3 h-3 bg-gray-500 rounded-full"></span>
+              有効化可能
+              <span className="ml-2 text-sm font-normal text-slate-400">
+                ({readyToEnable.length}個)
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {readyToEnable.map(server => (
+                <MCPServerCard
+                  key={server.id}
+                  server={server}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onSecretsUpdated={handleSecretsUpdated}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Config Editor Modal */}
         {showEditor && (

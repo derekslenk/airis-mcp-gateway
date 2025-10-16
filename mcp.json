@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "airis-mcp-gateway": {
-      "url": "http://localhost:9090/sse",
-      "description": "All MCP servers via unified Gateway (25 servers, direct connection)"
+      "url": "http://localhost:9090/mcp/sse",
+      "description": "All MCP servers via unified Gateway (25 servers, schema partitioning enabled)"
     }
   }
 }

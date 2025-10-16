@@ -37,10 +37,10 @@ up: ## Start all services
 	@echo "$(GREEN)Starting services...$(NC)"
 	@docker compose up -d --remove-orphans
 	@echo "$(GREEN)✅ All services started$(NC)"
-	@echo "🔗 Gateway: http://localhost:$${GATEWAY_PORT:-9090}"
+	@echo "🔗 Gateway: http://localhost:$${GATEWAY_PORT}"
 	@echo "🗄️  Database: internal only"
-	@echo "🚀 API: http://localhost:$${API_PORT:-8001} (docs: /docs)"
-	@echo "🎨 UI: http://localhost:$${UI_PORT:-5173}"
+	@echo "🚀 API: http://localhost:$${API_PORT} (docs: /docs)"
+	@echo "🎨 UI: http://localhost:$${UI_PORT}"
 
 .PHONY: down
 down: ## Stop all services
@@ -113,7 +113,7 @@ ui-build: ## Build Settings UI image
 ui-up: ## Start Settings UI
 	@docker compose up -d settings-ui
 	@echo "$(GREEN)✅ Settings UI started$(NC)"
-	@echo "🎨 http://localhost:5173"
+	@echo "🎨 http://localhost:$${UI_PORT}"
 
 .PHONY: ui-down
 ui-down: ## Stop Settings UI
@@ -211,9 +211,9 @@ install-claude: ## Install and register with Claude Code (one-command setup)
 	@echo "  3. Verify: $(GREEN)airis-mcp-gateway$(NC) appears in list"
 	@echo ""
 	@echo "$(BLUE)Access URLs:$(NC)"
-	@echo "  Gateway:     http://localhost:9090"
-	@echo "  Settings UI: http://localhost:5173"
-	@echo "  API Docs:    http://localhost:8001/docs"
+	@echo "  Gateway:     http://localhost:$${GATEWAY_PORT}"
+	@echo "  Settings UI: http://localhost:$${UI_PORT}"
+	@echo "  API Docs:    http://localhost:$${API_PORT}/docs"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 .PHONY: uninstall-claude
@@ -253,8 +253,8 @@ verify-claude: ## Verify Claude Code installation
 	fi
 	@echo ""
 	@echo "Checking connectivity..."
-	@if curl -sf http://localhost:9090/ > /dev/null; then \
-		echo "$(GREEN)✅ Gateway responding at http://localhost:9090$(NC)"; \
+	@if curl -sf http://localhost:$${GATEWAY_PORT}/ > /dev/null; then \
+		echo "$(GREEN)✅ Gateway responding at http://localhost:$${GATEWAY_PORT}$(NC)"; \
 	else \
 		echo "$(RED)❌ Gateway not responding$(NC)"; \
 		exit 1; \
@@ -283,9 +283,9 @@ install: ## Install AIRIS Gateway to ALL editors (Claude Desktop, Cursor, Zed, e
 	@echo "  2. Test MCP tools in any editor - all share same 25 servers!"
 	@echo ""
 	@echo "$(BLUE)Access URLs:$(NC)"
-	@echo "  Gateway:     http://localhost:9090"
-	@echo "  Settings UI: http://localhost:5173"
-	@echo "  API Docs:    http://localhost:8001/docs"
+	@echo "  Gateway:     http://localhost:$${GATEWAY_PORT}"
+	@echo "  Settings UI: http://localhost:$${UI_PORT}"
+	@echo "  API Docs:    http://localhost:$${API_PORT}/docs"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 .PHONY: uninstall
