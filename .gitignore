@@ -20,4 +20,4 @@ claude-memory/
 original-repos/
 
 # Claude Code configuration (keep this repo focused on MCP servers)
-# CLAUDE.md is for individual project instructions
+# CLAUDE.md is for individual project instructionsservers/*/node_modules/
