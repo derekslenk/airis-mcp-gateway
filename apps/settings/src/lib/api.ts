@@ -34,6 +34,34 @@ export interface MCPServerUpdate {
   category?: string;
 }
 
+// Secret management types
+export interface Secret {
+  id: number;
+  server_name: string;
+  key_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecretWithValue extends Secret {
+  value: string;
+}
+
+export interface SecretCreate {
+  server_name: string;
+  key_name: string;
+  value: string;
+}
+
+export interface SecretUpdate {
+  value: string;
+}
+
+export interface SecretListResponse {
+  secrets: Secret[];
+  total: number;
+}
+
 class APIClient {
   private baseURL: string;
 
@@ -106,6 +134,66 @@ class APIClient {
   // Health check
   async healthCheck(): Promise<{ status: string }> {
     return this.request<{ status: string }>('/../health');
+  }
+
+  // ========================================
+  // Secrets API
+  // ========================================
+
+  // Create a new secret
+  async createSecret(data: SecretCreate): Promise<Secret> {
+    return this.request<Secret>('/secrets/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // List all secrets (without values)
+  async listSecrets(): Promise<SecretListResponse> {
+    return this.request<SecretListResponse>('/secrets/');
+  }
+
+  // Get secrets for a specific server (without values)
+  async getSecretsByServer(serverName: string): Promise<Secret[]> {
+    return this.request<Secret[]>(`/secrets/${encodeURIComponent(serverName)}`);
+  }
+
+  // Get a specific secret with decrypted value
+  async getSecret(serverName: string, keyName: string): Promise<SecretWithValue> {
+    return this.request<SecretWithValue>(
+      `/secrets/${encodeURIComponent(serverName)}/${encodeURIComponent(keyName)}`
+    );
+  }
+
+  // Update a secret value
+  async updateSecret(serverName: string, keyName: string, value: string): Promise<Secret> {
+    return this.request<Secret>(
+      `/secrets/${encodeURIComponent(serverName)}/${encodeURIComponent(keyName)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ value }),
+      }
+    );
+  }
+
+  // Delete a specific secret
+  async deleteSecret(serverName: string, keyName: string): Promise<void> {
+    await fetch(
+      `${this.baseURL}/secrets/${encodeURIComponent(serverName)}/${encodeURIComponent(keyName)}`,
+      {
+        method: 'DELETE',
+      }
+    );
+  }
+
+  // Delete all secrets for a server
+  async deleteSecretsByServer(serverName: string): Promise<{ deleted: number; server_name: string }> {
+    return this.request<{ deleted: number; server_name: string }>(
+      `/secrets/${encodeURIComponent(serverName)}`,
+      {
+        method: 'DELETE',
+      }
+    );
   }
 }
 

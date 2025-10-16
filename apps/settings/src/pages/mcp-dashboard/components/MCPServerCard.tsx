@@ -1,21 +1,86 @@
-import { useState } from 'react';
-import type { MCPServer } from '../../../lib/api';
+import { useState, useEffect } from 'react';
+import type { MCPServer, SecretWithValue } from '../../../lib/api';
+import { apiClient } from '../../../lib/api';
+import { getServerConfig, requiresApiKeys } from '../../../lib/serverConfig';
 
 interface MCPServerCardProps {
   server: MCPServer;
   onToggle: (id: number, enabled: boolean) => void;
-  onSaveApiKey: (id: number, apiKey: string) => void;
   onDelete: (id: number) => void;
+  onSecretsUpdated: () => void;
 }
 
-export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPServerCardProps) {
+export function MCPServerCard({ server, onToggle, onDelete, onSecretsUpdated }: MCPServerCardProps) {
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState(server.env?.API_KEY || '');
+  const [apiKeyInputs, setApiKeyInputs] = useState<Record<string, string>>({});
+  const [existingSecrets, setExistingSecrets] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleApiKeySubmit = () => {
-    onSaveApiKey(server.id, apiKeyInput);
-    setShowApiKeyInput(false);
+  const serverConfig = getServerConfig(server.name);
+  const needsApiKeys = requiresApiKeys(server.name);
+
+  // Load existing secrets on mount
+  useEffect(() => {
+    if (needsApiKeys) {
+      loadExistingSecrets();
+    }
+  }, [server.name, needsApiKeys]);
+
+  const loadExistingSecrets = async () => {
+    try {
+      const secrets = await apiClient.getSecretsByServer(server.name);
+      const secretsMap: Record<string, boolean> = {};
+      secrets.forEach(secret => {
+        secretsMap[secret.key_name] = true;
+      });
+      setExistingSecrets(secretsMap);
+    } catch (err) {
+      console.error('Failed to load existing secrets:', err);
+    }
+  };
+
+  const handleApiKeySubmit = async () => {
+    if (!serverConfig) return;
+
+    setLoading(true);
+    try {
+      // Save each API key to Secrets API
+      for (const keyConfig of serverConfig.keys) {
+        const value = apiKeyInputs[keyConfig.name];
+        if (!value) {
+          if (keyConfig.required) {
+            alert(`${keyConfig.label} is required`);
+            setLoading(false);
+            return;
+          }
+          continue;
+        }
+
+        // Check if secret exists, update or create
+        if (existingSecrets[keyConfig.name]) {
+          await apiClient.updateSecret(server.name, keyConfig.name, value);
+        } else {
+          await apiClient.createSecret({
+            server_name: server.name,
+            key_name: keyConfig.name,
+            value: value,
+          });
+        }
+      }
+
+      // Reload secrets to update UI
+      await loadExistingSecrets();
+      setApiKeyInputs({});
+      setShowApiKeyInput(false);
+      onSecretsUpdated();
+      alert('API Keys saved successfully and encrypted');
+    } catch (err) {
+      console.error('Failed to save API keys:', err);
+      alert(`Failed to save API keys: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = () => {
@@ -28,7 +93,11 @@ export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPS
     return 'ri-checkbox-circle-fill';
   };
 
-  const hasApiKey = server.env?.API_KEY && server.env.API_KEY.length > 0;
+  const allKeysConfigured = serverConfig
+    ? serverConfig.keys
+        .filter(k => k.required)
+        .every(k => existingSecrets[k.name])
+    : true;
 
   return (
     <div className={`bg-white rounded-xl border-2 transition-all ${
@@ -40,14 +109,9 @@ export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPS
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-gray-900">{server.name}</h3>
-              {server.category !== 'custom' && (
+              {server.category && (
                 <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
-                  Default
-                </span>
-              )}
-              {server.category === 'custom' && (
-                <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">
-                  Custom
+                  {server.category}
                 </span>
               )}
             </div>
@@ -68,7 +132,7 @@ export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPS
           {server.args && server.args.length > 0 && (
             <div className="mt-2">
               <div className="text-xs text-gray-500 mb-1">Args:</div>
-              <div className="text-xs bg-gray-50 px-2 py-1 rounded">
+              <div className="text-xs bg-gray-50 px-2 py-1 rounded break-words">
                 {server.args.join(' ')}
               </div>
             </div>
@@ -76,39 +140,87 @@ export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPS
         </div>
 
         {/* API Key Management */}
-        {!showApiKeyInput ? (
+        {needsApiKeys && !showApiKeyInput && (
           <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              {allKeysConfigured ? (
+                <div className="flex items-center gap-1 text-green-600 text-sm">
+                  <i className="ri-checkbox-circle-fill"></i>
+                  <span>API Keys Configured</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-amber-600 text-sm">
+                  <i className="ri-alert-fill"></i>
+                  <span>API Keys Required</span>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setShowApiKeyInput(true)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
             >
-              <i className={hasApiKey ? "ri-key-fill text-green-600" : "ri-key-line text-gray-400"}></i>
-              {hasApiKey ? 'Update API Key' : 'Set API Key'}
+              <i className={allKeysConfigured ? "ri-key-fill text-green-600" : "ri-key-line text-gray-400"}></i>
+              {allKeysConfigured ? 'Update API Keys' : 'Set API Keys'}
             </button>
           </div>
-        ) : (
-          <div className="mb-4 space-y-2">
-            <input
-              type="password"
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="Enter API key"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-            <div className="flex gap-2">
+        )}
+
+        {showApiKeyInput && serverConfig && (
+          <div className="mb-4 space-y-3">
+            {serverConfig.keys.map(keyConfig => (
+              <div key={keyConfig.name}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {keyConfig.label}
+                  {keyConfig.required && <span className="text-red-500 ml-1">*</span>}
+                  {existingSecrets[keyConfig.name] && (
+                    <span className="ml-2 text-xs text-green-600">
+                      <i className="ri-checkbox-circle-fill"></i> Configured
+                    </span>
+                  )}
+                </label>
+                <input
+                  type={keyConfig.type || 'password'}
+                  value={apiKeyInputs[keyConfig.name] || ''}
+                  onChange={(e) => setApiKeyInputs({
+                    ...apiKeyInputs,
+                    [keyConfig.name]: e.target.value,
+                  })}
+                  placeholder={keyConfig.placeholder}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            ))}
+            <div className="flex gap-2 pt-2">
               <button
                 onClick={handleApiKeySubmit}
-                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                disabled={loading}
+                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:bg-gray-400"
               >
-                Save
+                {loading ? 'Saving...' : 'Save & Encrypt'}
               </button>
               <button
-                onClick={() => setShowApiKeyInput(false)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                onClick={() => {
+                  setShowApiKeyInput(false);
+                  setApiKeyInputs({});
+                }}
+                disabled={loading}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:bg-gray-100"
               >
                 Cancel
               </button>
             </div>
+            {serverConfig.documentation && (
+              <div className="text-xs text-gray-500 mt-2">
+                <a
+                  href={serverConfig.documentation}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  📚 Documentation
+                </a>
+              </div>
+            )}
           </div>
         )}
 
@@ -116,11 +228,15 @@ export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPS
         <div className="flex gap-2">
           <button
             onClick={() => onToggle(server.id, !server.enabled)}
+            disabled={!allKeysConfigured && needsApiKeys}
             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
               server.enabled
                 ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : !allKeysConfigured && needsApiKeys
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
+            title={!allKeysConfigured && needsApiKeys ? 'Configure API keys first' : ''}
           >
             {server.enabled ? 'Disable' : 'Enable'}
           </button>
@@ -136,22 +252,24 @@ export function MCPServerCard({ server, onToggle, onSaveApiKey, onDelete }: MCPS
 
         {/* Environment Variables */}
         {server.env && Object.keys(server.env).length > 0 && (
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="w-full mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            {showDetails ? 'Hide' : 'Show'} Environment Variables
-          </button>
-        )}
-        {showDetails && server.env && (
-          <div className="mt-2 text-xs bg-gray-50 p-2 rounded">
-            {Object.entries(server.env).map(([key, value]) => (
-              <div key={key} className="flex justify-between">
-                <span className="font-mono">{key}:</span>
-                <span className="font-mono text-gray-600">{value.substring(0, 20)}...</span>
+          <>
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              {showDetails ? 'Hide' : 'Show'} Environment Variables
+            </button>
+            {showDetails && (
+              <div className="mt-2 text-xs bg-gray-50 p-2 rounded">
+                {Object.entries(server.env).map(([key, value]) => (
+                  <div key={key} className="flex justify-between mb-1">
+                    <span className="font-mono font-semibold">{key}:</span>
+                    <span className="font-mono text-gray-600">{value.substring(0, 20)}...</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
