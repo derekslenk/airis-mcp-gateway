@@ -19,7 +19,8 @@
   "author": "kazuki",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4"
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "simple-git": "^3.27.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

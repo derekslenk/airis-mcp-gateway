@@ -6,7 +6,7 @@ from ...schemas import secret as schemas
 from ...crud import secret as crud
 from ...core.encryption import encryption_manager
 
-router = APIRouter(prefix="/secrets", tags=["secrets"])
+router = APIRouter(tags=["secrets"])
 
 
 @router.post(

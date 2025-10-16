@@ -18,6 +18,10 @@ RUN uv pip install --system -r pyproject.toml
 # Copy application code
 COPY app ./app
 
+# Copy Alembic migrations
+COPY alembic ./alembic
+COPY alembic.ini ./alembic.ini
+
 # Expose port
 EXPOSE 8000
 

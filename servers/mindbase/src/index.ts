@@ -13,9 +13,43 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { simpleGit } from "simple-git";
+import path from "path";
 
 // MindBase API configuration
 const MINDBASE_API_BASE = process.env.MINDBASE_API_URL || "http://localhost:18002";
+
+// Repository detection utility
+interface RepositoryInfo {
+  name: string;
+  path: string;
+  branch: string;
+}
+
+async function detectRepository(cwd: string = process.cwd()): Promise<RepositoryInfo | null> {
+  try {
+    const git = simpleGit(cwd);
+    const isRepo = await git.checkIsRepo();
+
+    if (!isRepo) {
+      return null;
+    }
+
+    const root = await git.revparse(['--show-toplevel']);
+    const repoPath = root.trim();
+    const repoName = path.basename(repoPath);
+    const branch = await git.revparse(['--abbrev-ref', 'HEAD']);
+
+    return {
+      name: repoName,
+      path: repoPath,
+      branch: branch.trim()
+    };
+  } catch (error) {
+    console.error("Failed to detect repository:", error);
+    return null;
+  }
+}
 
 interface ConversationCreate {
   source: string;
@@ -142,12 +176,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "mindbase_store": {
         const conversation = args as unknown as ConversationCreate;
 
+        // Auto-detect repository and add to metadata
+        const repoInfo = await detectRepository();
+        const enrichedMetadata = {
+          ...conversation.metadata,
+          ...(repoInfo && {
+            repository: repoInfo.name,
+            repository_path: repoInfo.path,
+            repository_branch: repoInfo.branch
+          })
+        };
+
+        const payload = {
+          ...conversation,
+          metadata: enrichedMetadata
+        };
+
         const response = await fetch(`${MINDBASE_API_BASE}/conversations/store`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(conversation),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -170,12 +220,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "mindbase_search": {
         const query = args as unknown as SearchQuery;
 
+        // Auto-detect repository and filter by current repo
+        const repoInfo = await detectRepository();
+        const searchPayload = {
+          ...query,
+          ...(repoInfo && {
+            metadata_filter: {
+              repository: repoInfo.name
+            }
+          })
+        };
+
         const response = await fetch(`${MINDBASE_API_BASE}/conversations/search`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(query),
+          body: JSON.stringify(searchPayload),
         });
 
         if (!response.ok) {

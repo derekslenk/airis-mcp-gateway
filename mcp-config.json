@@ -47,11 +47,18 @@
       "args": ["-y", "mcp-server-sqlite", "--db-path", "/app/data.db"]
     },
     "mindbase": {
-      "command": "node",
-      "args": ["/workspace/github/airis-mcp-gateway/servers/mindbase/dist/index.js"],
-      "env": {
-        "MINDBASE_API_URL": "http://host.docker.internal:18002"
-      }
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--network", "airis-mcp-gateway_default",
+        "-e", "MINDBASE_API_URL=http://host.docker.internal:18002",
+        "-v", "/Users/kazuki/github/airis-mcp-gateway/servers/mindbase:/app:ro",
+        "-w", "/app",
+        "node:24-alpine",
+        "node", "dist/index.js"
+      ]
     },
 
     "__comment_disabled": "=== DISABLED (auth required - enable via frontend UI) ===",
