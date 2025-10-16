@@ -30,11 +30,17 @@ def upgrade() -> None:
         {
             'name': 'filesystem',
             'enabled': True,
-            'command': 'npx',
-            'args': ['-y', '@modelcontextprotocol/server-filesystem', '/workspace/github'],
+            'command': 'docker',
+            'args': [
+                'run', '--rm', '-i',
+                '--network', 'airis-mcp-gateway_default',
+                '-v', '/Users/kazuki/github:/workspace:ro',
+                'node:24-alpine',
+                'sh', '-c', 'npx -y @modelcontextprotocol/server-filesystem /workspace'
+            ],
             'env': None,
-            'description': 'File system operations for workspace',
-            'category': 'Gateway NPX'
+            'description': 'File system operations for workspace (Docker isolated, read-only)',
+            'category': 'Docker Server'
         },
         {
             'name': 'context7',
