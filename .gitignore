@@ -24,3 +24,25 @@ original-repos/
 
 # Node.js dependencies
 servers/*/node_modules/
+apps/*/node_modules/
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+
+# Build outputs
+apps/*/out/
+apps/*/dist/
+apps/*/build/
+*.tsbuildinfo
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Auto-generated
+auto-imports.d.ts
+.modules.yaml
+.pnpm-workspace-state-v1.json
