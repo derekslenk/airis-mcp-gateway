@@ -344,24 +344,74 @@ export default function MCPDashboard() {
   const [showTips, setShowTips] = useState(false);
 
   const toggleServer = (id: string) => {
-    setServers(prev => prev.map(server => 
-      server.id === id 
+    setServers(prev => prev.map(server =>
+      server.id === id
         ? { ...server, enabled: !server.enabled, status: !server.enabled ? 'connected' : 'disconnected' }
         : server
     ));
   };
 
-  const updateApiKey = (id: string, apiKey: string) => {
-    setServers(prev => prev.map(server => 
-      server.id === id 
-        ? { 
-            ...server, 
-            apiKey, 
-            enabled: apiKey ? true : server.enabled,
-            status: apiKey ? 'connected' : 'error' 
-          }
-        : server
-    ));
+  const updateApiKey = async (id: string, apiKey: string) => {
+    // API key name mapping
+    const keyNameMap: Record<string, string> = {
+      'tavily': 'TAVILY_API_KEY',
+      'stripe': 'STRIPE_SECRET_KEY',
+      'figma': 'FIGMA_ACCESS_TOKEN',
+      'github': 'GITHUB_PERSONAL_ACCESS_TOKEN',
+      'supabase': 'SUPABASE_ANON_KEY',
+    };
+
+    const keyName = keyNameMap[id];
+    if (!keyName) {
+      alert(`Unknown server: ${id}`);
+      return;
+    }
+
+    try {
+      // Save to API
+      const response = await fetch('http://localhost:9000/api/v1/secrets/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          server_name: id,
+          key_name: keyName,
+          value: apiKey
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to save API key');
+      }
+
+      // Update local state
+      setServers(prev => prev.map(server =>
+        server.id === id
+          ? {
+              ...server,
+              apiKey,
+              enabled: true,
+              status: 'connected' as const
+            }
+          : server
+      ));
+
+      // Restart Gateway to apply changes
+      alert('APIキーを保存しました。Gatewayを再起動しています...');
+
+      const restartResponse = await fetch('http://localhost:9000/api/v1/gateway/restart', {
+        method: 'POST'
+      });
+
+      if (restartResponse.ok) {
+        alert('Gateway再起動完了！ツールが利用可能になりました。');
+      } else {
+        alert('Gateway再起動に失敗しました。手動で再起動してください。');
+      }
+
+    } catch (error) {
+      alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const applyOfficialRecommended = (withApi: boolean = false) => {
