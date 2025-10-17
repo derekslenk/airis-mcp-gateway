@@ -84,7 +84,7 @@
     "__comment_disabled": "=== DISABLED (auth required - enable via frontend UI) ===",
 
     "__comment_ai_search": "=== AI SEARCH & RESEARCH ===",
-    "__disabled_tavily": {
+    "tavily": {
       "command": "npx",
       "args": ["-y", "@tavily/mcp-server"],
       "env": {
@@ -134,7 +134,7 @@
         "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
       }
     },
-    "__disabled_figma": {
+    "figma": {
       "command": "npx",
       "args": ["-y", "@hapins/figma-mcp"],
       "env": {
@@ -143,12 +143,15 @@
     },
 
     "__comment_payment_api": "=== PAYMENT & API INTEGRATIONS ===",
-    "__disabled_stripe": {
+    "stripe": {
       "command": "bash",
       "args": [
         "-c",
-        "STRIPE_SECRET_KEY=$(cat /run/secrets/stripe_key 2>/dev/null || echo ${STRIPE_SECRET_KEY}) npx -y @stripe/mcp --tools=all"
-      ]
+        "npx -y @stripe/mcp --tools=all"
+      ],
+      "env": {
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+      }
     },
     "__disabled_twilio": {
       "command": "bash",

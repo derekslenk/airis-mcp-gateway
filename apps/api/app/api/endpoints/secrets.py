@@ -5,6 +5,7 @@ from ...core.database import get_db
 from ...schemas import secret as schemas
 from ...crud import secret as crud
 from ...core.encryption import encryption_manager
+from ...core.validators import validate_api_key
 
 router = APIRouter(tags=["secrets"])
 
@@ -19,6 +20,15 @@ async def create_secret(
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new encrypted secret"""
+    # Validate API key format
+    try:
+        validate_api_key(secret_data.key_name, secret_data.value)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
     # Check if secret already exists
     existing = await crud.get_secret(db, secret_data.server_name, secret_data.key_name)
     if existing:
@@ -99,6 +109,15 @@ async def update_secret(
     db: AsyncSession = Depends(get_db)
 ):
     """Update a secret value"""
+    # Validate API key format
+    try:
+        validate_api_key(key_name, secret_data.value)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
     secret = await crud.update_secret(db, server_name, key_name, secret_data.value)
     if not secret:
         raise HTTPException(
@@ -139,4 +158,24 @@ async def delete_secrets_by_server(
     return {
         "deleted": count,
         "server_name": server_name
+    }
+
+
+@router.get(
+    "/export/env",
+    response_model=dict
+)
+async def export_secrets_as_env(db: AsyncSession = Depends(get_db)):
+    """Export all secrets as environment variables (for Gateway injection)"""
+    secrets = await crud.get_all_secrets(db)
+    env_vars = {}
+
+    for secret in secrets:
+        # Decrypt value
+        decrypted_value = encryption_manager.decrypt(secret.encrypted_value)
+        env_vars[secret.key_name] = decrypted_value
+
+    return {
+        "env_vars": env_vars,
+        "total": len(env_vars)
     }

@@ -11,9 +11,14 @@ LABEL version="1.0.0"
 ENV AIRIS_VERSION="1.0.0"
 ENV AIRIS_MCP_GATEWAY="true"
 
+# Copy secret injection script
+COPY inject-secrets.sh /usr/local/bin/inject-secrets.sh
+RUN chmod +x /usr/local/bin/inject-secrets.sh
+
 # Health check for AIRIS Gateway
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=40s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:9090/ || exit 1
 
-# Default entrypoint (inherited from base image)
-# ENTRYPOINT ["/docker-mcp", "gateway", "run"]
+# Use secret injection script as entrypoint
+ENTRYPOINT ["/usr/local/bin/inject-secrets.sh"]
+CMD ["/docker-mcp", "gateway", "run", "--transport=sse", "--port=9090"]
