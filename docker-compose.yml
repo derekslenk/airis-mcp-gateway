@@ -8,14 +8,16 @@ services:
       dockerfile: Dockerfile
     image: airis/mcp-gateway:latest
     container_name: airis-mcp-gateway
-    entrypoint: ["/docker-mcp"]
+    environment:
+      - API_URL=http://api:8000
     command:
+      - /docker-mcp
       - gateway
       - run
       - --transport=sse
       - --port=9090
       - --config=/etc/docker-mcp/config.json
-      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite,mindbase,self-management
+      - --servers=time,fetch,git,memory,sequentialthinking,context7,filesystem,puppeteer,serena,sqlite,mindbase,self-management,tavily,stripe,figma
     ports:
       - "${GATEWAY_PORT}:9090"
     volumes:
@@ -32,7 +34,7 @@ services:
       - "x-secret:FIGMA_ACCESS_TOKEN=/run/secrets/figma_token"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9030/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9090/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -75,7 +77,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -84,8 +86,8 @@ services:
   # Settings UI - React + Vite frontend
   settings-ui:
     build:
-      context: ./apps/settings
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/settings/Dockerfile
     container_name: airis-settings-ui
     ports:
       - "${UI_PORT}:80"
@@ -94,7 +96,7 @@ services:
       - api
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/"]
       interval: 30s
       timeout: 10s
       retries: 3

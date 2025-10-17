@@ -1,0 +1,15 @@
+# Development override for Settings UI
+services:
+  settings-ui:
+    build:
+      context: ./apps/settings
+      dockerfile: Dockerfile.dev
+      target: development
+    volumes:
+      - ./apps/settings:/app:rw
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: pnpm dev --host 0.0.0.0 --port 3000
+    ports:
+      - "${UI_PORT}:3000"
