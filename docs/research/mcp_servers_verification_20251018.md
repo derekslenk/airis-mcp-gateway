@@ -228,17 +228,26 @@ These are built into the MCP gateway itself and don't require external repositor
 
 ---
 
-## Non-Existent Servers (MUST BE REMOVED)
+## Custom/Internal Servers (Project-Specific)
 
-### ❌ mindbase
-- **Status**: DOES NOT EXIST
-- **Evidence**: No official repository found, no MCP server registry entry
-- **Action**: Remove from UI, database, and configuration
+### ✅ mindbase
+- **Status**: EXISTS - Custom server by agiletec-inc
+- **Repository**: https://github.com/agiletec-inc/mindbase
+- **Config**: No auth required (local operation)
+- **Fields**:
+  - PostgreSQL connection (automatic via Docker)
+  - Ollama endpoint (automatic via Docker)
+  - Optional: `QIITA_TOKEN` for publishing
+- **Description**: Long-term memory and failure learning system using pgvector embeddings
 
-### ❌ self-management
-- **Status**: DOES NOT EXIST
-- **Evidence**: No official repository found, no MCP server registry entry
-- **Action**: Remove from UI, database, and configuration
+### ✅ self-management
+- **Status**: EXISTS - Internal custom server
+- **Location**: `/servers/self-management/` (this project)
+- **Package**: `@airis/self-management-mcp-server`
+- **Config**: No auth required
+- **Fields**:
+  - API URL (default: http://api:8000)
+- **Description**: Dynamic MCP server enable/disable control and orchestration
 
 ---
 

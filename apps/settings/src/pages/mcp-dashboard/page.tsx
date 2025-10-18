@@ -104,20 +104,82 @@ export default function MCPDashboard() {
   }, []);
 
   const toggleServer = async (id: string) => {
+    const currentServer = servers.find(s => s.id === id);
+    if (!currentServer) return;
+
+    const newEnabledState = !currentServer.enabled;
+
+    // Check if enabling a server that requires API key
+    if (newEnabledState && currentServer.apiKeyRequired && !currentServer.apiKey) {
+      alert('このサーバーを有効にするには、まずAPIキーを設定してください。');
+      return;
+    }
+
+    // If enabling server with API key, validate it first
+    if (newEnabledState && currentServer.apiKey && currentServer.apiKey !== 'configured') {
+      try {
+        // Fetch saved secrets for validation
+        const secretsResponse = await fetch('http://localhost:9000/api/v1/secrets/');
+        if (!secretsResponse.ok) {
+          alert('設定の取得に失敗しました');
+          return;
+        }
+
+        const secretsData = await secretsResponse.json();
+        const savedSecrets = secretsData.secrets || [];
+
+        // Build config from saved secrets
+        const config: Record<string, string> = {};
+        savedSecrets.forEach((secret: any) => {
+          if (secret.server_name === id) {
+            config[secret.key_name] = secret.value;
+          }
+        });
+
+        if (Object.keys(config).length === 0) {
+          alert('このサーバーの設定が見つかりません。APIキーを再設定してください。');
+          return;
+        }
+
+        // Validate configuration
+        const validateResponse = await fetch(`http://localhost:9000/api/v1/validate/${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            server_id: id,
+            config: config
+          })
+        });
+
+        if (!validateResponse.ok) {
+          alert('バリデーションリクエストに失敗しました');
+          return;
+        }
+
+        const validation = await validateResponse.json();
+        if (!validation.valid) {
+          alert(`接続テスト失敗: ${validation.message}\n\nAPIキーが正しいか確認してください。`);
+          return;
+        }
+
+        // Validation succeeded, show success message
+        alert(`接続成功: ${validation.message}`);
+      } catch (error) {
+        console.error('Validation error:', error);
+        alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        return;
+      }
+    }
+
     // Optimistic update
     setServers(prev => prev.map(server =>
       server.id === id
-        ? { ...server, enabled: !server.enabled, status: !server.enabled ? 'connected' : 'disconnected' }
+        ? { ...server, enabled: newEnabledState, status: newEnabledState ? 'connected' : 'disconnected' }
         : server
     ));
 
     // Persist to database
     try {
-      const currentServer = servers.find(s => s.id === id);
-      if (!currentServer) return;
-
-      const newEnabledState = !currentServer.enabled;
-
       const response = await fetch(`http://localhost:9000/api/v1/server-states/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
