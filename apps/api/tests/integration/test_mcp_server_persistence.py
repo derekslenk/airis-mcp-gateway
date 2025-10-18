@@ -9,7 +9,7 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
-from app.db.session import get_db
+from app.core.database import get_db
 from app.crud import mcp_server as crud
 
 
@@ -24,39 +24,48 @@ class TestMCPServerPersistence:
         Test that toggling a server ON persists to PostgreSQL.
 
         Scenario:
-        1. Toggle Figma server to enabled=true
-        2. Verify API returns enabled=true
-        3. Query PostgreSQL directly - should be enabled=true
-        4. Toggle again to enabled=false
-        5. Verify both API and PostgreSQL reflect the change
+        1. Get Figma server ID by name
+        2. Toggle server enabled state
+        3. Verify API returns new state
+        4. Query PostgreSQL directly - should match API state
+        5. Toggle again
+        6. Verify both API and PostgreSQL reflect the change
         """
-        server_id = "figma"
+        # Step 1: Get Figma server
+        server_name = "figma"
+        server = await crud.get_server_by_name(db, server_name)
+        assert server is not None, f"Server {server_name} not found in database"
+        server_id = server.id
+        initial_state = server.enabled
 
-        # Step 1: Toggle server to enabled=true
-        response = await async_client.post(f"/api/v1/mcp/servers/{server_id}/toggle")
+        # Step 2: Toggle server (flip state)
+        new_state = not initial_state
+        response = await async_client.post(
+            f"/api/v1/mcp/servers/{server_id}/toggle",
+            json={"enabled": new_state}
+        )
         assert response.status_code == 200
         data = response.json()
 
-        # Step 2: Verify API returns enabled state
-        first_enabled_state = data["enabled"]
+        # Step 3: Verify API returns new enabled state
+        assert data["enabled"] == new_state, "API response doesn't match requested state"
 
-        # Step 3: Query PostgreSQL directly to verify persistence
-        server = await crud.get_server_by_name(db, server_id)
-        assert server is not None, f"Server {server_id} not found in database"
-        assert server.enabled == first_enabled_state, "Database state doesn't match API response"
+        # Step 4: Query PostgreSQL directly to verify persistence
+        await db.refresh(server)
+        assert server.enabled == new_state, "Database state doesn't match API response"
 
-        # Step 4: Toggle again (flip the state)
-        response = await async_client.post(f"/api/v1/mcp/servers/{server_id}/toggle")
+        # Step 5: Toggle again (back to original)
+        response = await async_client.post(
+            f"/api/v1/mcp/servers/{server_id}/toggle",
+            json={"enabled": initial_state}
+        )
         assert response.status_code == 200
         data = response.json()
-        second_enabled_state = data["enabled"]
+        assert data["enabled"] == initial_state, "Second toggle failed"
 
-        # Verify state was flipped
-        assert second_enabled_state != first_enabled_state, "Toggle didn't change state"
-
-        # Step 5: Verify PostgreSQL reflects the new state
-        await db.refresh(server)  # Refresh from database
-        assert server.enabled == second_enabled_state, "Database state not updated after second toggle"
+        # Step 6: Verify PostgreSQL reflects the change
+        await db.refresh(server)
+        assert server.enabled == initial_state, "Database state not updated after second toggle"
 
     async def test_server_list_reflects_database_state(
         self, async_client: AsyncClient, db: AsyncSession
