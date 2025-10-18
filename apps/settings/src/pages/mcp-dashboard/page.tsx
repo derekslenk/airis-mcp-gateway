@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { MCPServerCard } from './components/MCPServerCard';
 import { ConfigEditor } from './components/ConfigEditor';
 import { TipsModal } from './components/TipsModal';
+import { MultiFieldConfigModal } from './components/MultiFieldConfigModal';
+import { getServerConfigSchema } from '../../types/mcp-config';
 
 interface MCPServer {
   id: string;
@@ -342,6 +344,7 @@ export default function MCPDashboard() {
   const [servers, setServers] = useState<MCPServer[]>(initialMCPServers);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [showTips, setShowTips] = useState(false);
+  const [configModalServer, setConfigModalServer] = useState<string | null>(null);
 
   const toggleServer = (id: string) => {
     setServers(prev => prev.map(server =>
@@ -352,13 +355,23 @@ export default function MCPDashboard() {
   };
 
   const updateApiKey = async (id: string, apiKey: string) => {
-    // API key name mapping
+    // Check if server has multiple fields configuration
+    const schema = getServerConfigSchema(id);
+
+    if (schema && schema.configType !== 'single') {
+      // Show multi-field modal
+      setConfigModalServer(id);
+      return;
+    }
+
+    // Single field configuration - legacy flow
     const keyNameMap: Record<string, string> = {
       'tavily': 'TAVILY_API_KEY',
       'stripe': 'STRIPE_SECRET_KEY',
       'figma': 'FIGMA_ACCESS_TOKEN',
       'github': 'GITHUB_PERSONAL_ACCESS_TOKEN',
-      'supabase': 'SUPABASE_ANON_KEY',
+      'notion': 'NOTION_API_KEY',
+      'brave-search': 'BRAVE_API_KEY',
     };
 
     const keyName = keyNameMap[id];
@@ -411,6 +424,56 @@ export default function MCPDashboard() {
 
     } catch (error) {
       alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const saveMultiFieldConfig = async (serverId: string, config: Record<string, string>) => {
+    try {
+      // Save all fields to API
+      for (const [keyName, value] of Object.entries(config)) {
+        const response = await fetch('http://localhost:9000/api/v1/secrets/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            server_name: serverId,
+            key_name: keyName,
+            value: value
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || `Failed to save ${keyName}`);
+        }
+      }
+
+      // Update local state
+      setServers(prev => prev.map(server =>
+        server.id === serverId
+          ? {
+              ...server,
+              apiKey: 'configured',
+              enabled: true,
+              status: 'connected' as const
+            }
+          : server
+      ));
+
+      // Restart Gateway to apply changes
+      alert('設定を保存しました。Gatewayを再起動しています...');
+
+      const restartResponse = await fetch('http://localhost:9000/api/v1/gateway/restart', {
+        method: 'POST'
+      });
+
+      if (restartResponse.ok) {
+        alert('Gateway再起動完了！ツールが利用可能になりました。');
+      } else {
+        alert('Gateway再起動に失敗しました。手動で再起動してください。');
+      }
+
+    } catch (error) {
+      throw error; // Re-throw for modal to handle
     }
   };
 
@@ -511,6 +574,18 @@ export default function MCPDashboard() {
         {showTips && (
           <TipsModal onClose={() => setShowTips(false)} />
         )}
+
+        {/* 複数フィールド設定モーダル */}
+        {configModalServer && (() => {
+          const schema = getServerConfigSchema(configModalServer);
+          return schema ? (
+            <MultiFieldConfigModal
+              schema={schema}
+              onSave={(config) => saveMultiFieldConfig(configModalServer, config)}
+              onClose={() => setConfigModalServer(null)}
+            />
+          ) : null;
+        })()}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* アクティブなサーバー */}
