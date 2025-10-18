@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ServerConfigSchema, ConfigField, validateConfigField } from '../../../types/mcp-config';
+import { ServerConfigSchema, ConfigField } from '../../../types/mcp-config';
+import { validateServerConfig, validateField } from '../../../validation/server-config';
 
 interface MultiFieldConfigModalProps {
   schema: ServerConfigSchema;
@@ -16,11 +17,17 @@ export function MultiFieldConfigModal({ schema, onSave, onClose }: MultiFieldCon
 
   const handleChange = (key: string, value: string) => {
     setValues(prev => ({ ...prev, [key]: value }));
-    // Clear error on change
+
+    // Real-time Zod validation
+    const validation = validateField(schema.id, key, value);
     if (errors[key]) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[key];
+        if (validation.valid) {
+          delete newErrors[key];
+        } else {
+          newErrors[key] = validation.error || 'Invalid value';
+        }
         return newErrors;
       });
     }
@@ -29,17 +36,11 @@ export function MultiFieldConfigModal({ schema, onSave, onClose }: MultiFieldCon
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate all fields
-    const newErrors: Record<string, string> = {};
-    schema.fields.forEach(field => {
-      const validation = validateConfigField(field, values[field.key]);
-      if (!validation.valid && validation.error) {
-        newErrors[field.key] = validation.error;
-      }
-    });
+    // Validate all fields with Zod
+    const validation = validateServerConfig(schema.id, values);
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!validation.success && validation.errors) {
+      setErrors(validation.errors);
       return;
     }
 
