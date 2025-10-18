@@ -12,11 +12,15 @@ WORKDIR /app
 # Copy dependency files
 COPY pyproject.toml ./
 
-# Install dependencies with UV
+# Install dependencies with UV (including dev dependencies for testing)
 RUN uv pip install --system -r pyproject.toml
+RUN uv pip install --system pytest pytest-asyncio httpx pytest-cov
 
 # Copy application code
 COPY app ./app
+
+# Copy tests
+COPY tests ./tests
 
 # Copy Alembic migrations
 COPY alembic ./alembic

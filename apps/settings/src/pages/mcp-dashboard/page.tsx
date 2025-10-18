@@ -11,355 +11,39 @@ interface MCPServer {
   name: string;
   description: string;
   enabled: boolean;
-  tools: string[];
   apiKeyRequired: boolean;
   apiKey?: string;
   status: 'connected' | 'disconnected' | 'error';
-  category: 'default' | 'custom';
-  recommended?: boolean;
+  category: string;
+  recommended: boolean;
+  builtin: boolean;
 }
 
-// Initial MCP servers definition (replaces placeholder)
-const initialMCPServers: MCPServer[] = [
-  // Built-in（常時有効）
-  {
-    id: 'sequential-thinking',
-    name: 'Sequential Thinking',
-    description: '段階的思考と体系的分析',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['思考分析', '段階的推論', '論理構造']
-  },
-  {
-    id: 'time',
-    name: 'Time',
-    description: '時間と日付の操作',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['日時取得', 'タイムゾーン', '時間計算']
-  },
-  {
-    id: 'fetch',
-    name: 'Fetch',
-    description: 'HTTP リクエストとAPI呼び出し',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['HTTP リクエスト', 'API呼び出し', 'データ取得']
-  },
-  {
-    id: 'git',
-    name: 'Git',
-    description: 'ローカルGitリポジトリ管理と操作',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['コミット', 'ブランチ操作', 'ログ確認', 'ステータス']
-  },
-  {
-    id: 'memory',
-    name: 'Memory',
-    description: 'セッション間でのデータ永続化',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['データ保存', 'セッション管理', '永続化']
-  },
-
-  // Gateway（認証不要・推奨）
-  {
-    id: 'filesystem',
-    name: 'File System',
-    description: 'ローカルファイルシステム操作（必須）',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['ファイル読み書き', 'ディレクトリ操作', 'ファイル検索']
-  },
-  {
-    id: 'context7',
-    name: 'Context7',
-    description: '公式ライブラリドキュメントとコード例（必須）',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['ドキュメント検索', 'コード例', 'API参照']
-  },
-  {
-    id: 'serena',
-    name: 'Serena',
-    description: 'セマンティックコード分析とインテリジェント編集（推奨）',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['コード分析', 'セマンティック解析', 'インテリジェント編集']
-  },
-  {
-    id: 'mindbase',
-    name: 'Mindbase',
-    description: '長期記憶・失敗学習システム（推奨）',
-    status: 'connected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: true,
-    recommended: true,
-    tools: ['長期記憶', '失敗学習', 'ナレッジベース']
-  },
-
-  // 選択的（APIなし）
-  {
-    id: 'sqlite',
-    name: 'SQLite',
-    description: 'SQLiteデータベース操作（DB操作時のみ）',
-    status: 'disconnected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: true,
-    tools: ['SQL実行', 'データベース管理', 'テーブル操作']
-  },
-  {
-    id: 'puppeteer',
-    name: 'Puppeteer',
-    description: 'ヘッドレスブラウザ自動化（E2Eテスト時のみ）',
-    status: 'disconnected',
-    category: 'default',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: true,
-    tools: ['ブラウザ自動化', 'スクリーンショット', 'PDF生成']
-  },
-
-  // APIキー設定が必要なサーバー（公式推奨）
-  {
-    id: 'tavily',
-    name: 'Tavily',
-    description: 'AI検索とリアルタイム情報取得（Fetch無効化推奨）',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: true,
-    tools: ['AI検索', 'リアルタイム情報', 'データ取得']
-  },
-  {
-    id: 'supabase',
-    name: 'Supabase',
-    description: 'Supabaseデータベースと認証（Supabase開発時）',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: true,
-    tools: ['データベース操作', '認証管理', 'リアルタイム']
-  },
-  {
-    id: 'github',
-    name: 'GitHub',
-    description: 'GitHubリポジトリとIssue管理（GitHub操作時）',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: true,
-    tools: ['リポジトリ管理', 'Issue', 'プルリクエスト']
-  },
-  {
-    id: 'brave-search',
-    name: 'Brave Search',
-    description: 'プライバシー重視のウェブ検索（Tavily併用時は非推奨）',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: true,
-    tools: ['ウェブ検索', 'プライバシー保護', '検索結果']
-  },
-
-  // カスタム（追加オプション）
-  {
-    id: 'figma',
-    name: 'Figma',
-    description: 'Figmaデザインファイルとプロトタイプ管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['デザインファイル', 'プロトタイプ', 'コンポーネント管理']
-  },
-  {
-    id: 'slack',
-    name: 'Slack',
-    description: 'Slackメッセージとチャンネル管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['メッセージ送信', 'チャンネル管理', 'ファイル共有']
-  },
-  {
-    id: 'notion',
-    name: 'Notion',
-    description: 'Notionページとデータベース操作',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['ページ作成', 'データベース', 'コンテンツ管理']
-  },
-  {
-    id: 'google-drive',
-    name: 'Google Drive',
-    description: 'Google Driveファイル管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['ファイル管理', 'フォルダ操作', 'ドキュメント']
-  },
-  {
-    id: 'google-calendar',
-    name: 'Google Calendar',
-    description: 'Googleカレンダーイベント管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['イベント作成', 'スケジュール', 'リマインダー']
-  },
-  {
-    id: 'stripe',
-    name: 'Stripe',
-    description: 'Stripe決済とサブスクリプション管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['決済処理', 'サブスクリプション', '顧客管理']
-  },
-  {
-    id: 'shopify',
-    name: 'Shopify',
-    description: 'Shopifyストアと商品管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['商品管理', '注文処理', 'ストア運営']
-  },
-  {
-    id: 'weather-api',
-    name: 'Weather API',
-    description: '天気情報と気象データ取得',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: true,
-    enabled: false,
-    recommended: false,
-    tools: ['天気予報', '気象データ', '地域情報']
-  },
-  {
-    id: 'playwright',
-    name: 'Playwright',
-    description: 'クロスブラウザE2Eテストと自動化',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: false,
-    tools: ['E2Eテスト', 'ブラウザ自動化', 'テストスクリプト']
-  },
-  {
-    id: 'chrome-devtools',
-    name: 'Chrome DevTools',
-    description: 'Chrome DevToolsデバッグとパフォーマンス分析',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: false,
-    tools: ['デバッグ', 'パフォーマンス分析', 'DevTools']
-  },
-  {
-    id: 'postgresql',
-    name: 'PostgreSQL',
-    description: 'PostgreSQLデータベース接続',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: false,
-    tools: ['SQL実行', 'データ分析', 'データベース管理']
-  },
-  {
-    id: 'docker',
-    name: 'Docker',
-    description: 'Dockerコンテナ管理と操作',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: false,
-    tools: ['コンテナ管理', 'イメージ操作', 'Docker Compose']
-  },
-  {
-    id: 'kubernetes',
-    name: 'Kubernetes',
-    description: 'Kubernetesクラスター管理',
-    status: 'disconnected',
-    category: 'custom',
-    apiKeyRequired: false,
-    enabled: false,
-    recommended: false,
-    tools: ['Pod管理', 'サービス操作', 'デプロイメント']
-  }
-];
-
 export default function MCPDashboard() {
-  const [servers, setServers] = useState<MCPServer[]>(initialMCPServers);
+  const [servers, setServers] = useState<MCPServer[]>([]);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [configModalServer, setConfigModalServer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved secrets from database on mount
+  // Load server list, secrets, and toggle states from database on mount
   useEffect(() => {
-    const loadSavedSecrets = async () => {
+    const loadServerData = async () => {
       try {
-        const response = await fetch('http://localhost:9000/api/v1/secrets/');
-        if (!response.ok) {
-          console.error('Failed to load secrets');
+        // Load server list from mcp-config.json
+        const serversResponse = await fetch('http://localhost:9000/api/v1/mcp-config/servers');
+        if (!serversResponse.ok) {
+          console.error('Failed to load server list');
           setIsLoading(false);
           return;
         }
+        const serversData = await serversResponse.json();
+        const serverList = serversData.servers || [];
 
-        const data = await response.json();
-        const savedSecrets = data.secrets || [];
+        // Load saved secrets
+        const secretsResponse = await fetch('http://localhost:9000/api/v1/secrets/');
+        const secretsData = secretsResponse.ok ? await secretsResponse.json() : { secrets: [] };
+        const savedSecrets = secretsData.secrets || [];
 
         // Group secrets by server_name
         const secretsByServer: Record<string, string[]> = {};
@@ -370,36 +54,90 @@ export default function MCPDashboard() {
           secretsByServer[secret.server_name].push(secret.key_name);
         });
 
-        // Update servers with saved configuration status
-        setServers(prev => prev.map(server => {
-          const hasSecrets = secretsByServer[server.id];
-          if (hasSecrets && hasSecrets.length > 0) {
-            return {
-              ...server,
-              apiKey: 'configured',
-              enabled: true,
-              status: 'connected' as const
-            };
-          }
-          return server;
-        }));
+        // Load server states (toggle persistence)
+        const statesResponse = await fetch('http://localhost:9000/api/v1/server-states/');
+        const statesData = statesResponse.ok ? await statesResponse.json() : { server_states: [] };
+        const serverStates = statesData.server_states || [];
 
+        // Create state lookup map
+        const statesByServer: Record<string, boolean> = {};
+        serverStates.forEach((state: any) => {
+          statesByServer[state.server_id] = state.enabled;
+        });
+
+        // Merge server list with secrets and toggle states
+        const mergedServers: MCPServer[] = serverList.map((server: any) => {
+          const hasSecrets = secretsByServer[server.id]?.length > 0;
+          const hasState = server.id in statesByServer;
+
+          // Determine enabled state: persisted toggle > has secrets > default (recommended)
+          let enabled = server.recommended;
+          if (hasState) {
+            enabled = statesByServer[server.id];
+          } else if (hasSecrets && !server.apiKeyRequired) {
+            enabled = true;
+          }
+
+          return {
+            id: server.id,
+            name: server.name,
+            description: server.description,
+            enabled: enabled,
+            apiKeyRequired: server.apiKeyRequired,
+            apiKey: hasSecrets ? 'configured' : undefined,
+            status: enabled ? ('connected' as const) : ('disconnected' as const),
+            category: server.category,
+            recommended: server.recommended,
+            builtin: server.builtin
+          };
+        });
+
+        setServers(mergedServers);
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading secrets:', error);
+        console.error('Error loading server data:', error);
         setIsLoading(false);
       }
     };
 
-    loadSavedSecrets();
+    loadServerData();
   }, []);
 
-  const toggleServer = (id: string) => {
+  const toggleServer = async (id: string) => {
+    // Optimistic update
     setServers(prev => prev.map(server =>
       server.id === id
         ? { ...server, enabled: !server.enabled, status: !server.enabled ? 'connected' : 'disconnected' }
         : server
     ));
+
+    // Persist to database
+    try {
+      const currentServer = servers.find(s => s.id === id);
+      if (!currentServer) return;
+
+      const newEnabledState = !currentServer.enabled;
+
+      const response = await fetch(`http://localhost:9000/api/v1/server-states/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enabled: newEnabledState
+        })
+      });
+
+      if (!response.ok) {
+        console.error('Failed to persist server state');
+        // Rollback on failure
+        setServers(prev => prev.map(server =>
+          server.id === id
+            ? { ...server, enabled: currentServer.enabled, status: currentServer.status }
+            : server
+        ));
+      }
+    } catch (error) {
+      console.error('Error persisting server state:', error);
+    }
   };
 
   const updateApiKey = async (id: string, apiKey: string) => {

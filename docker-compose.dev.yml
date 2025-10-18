@@ -1,5 +1,9 @@
-# Development override for Settings UI
+# Development overrides for Settings UI and API
 services:
+  api:
+    volumes:
+      - ./apps/api/alembic:/app/alembic:rw
+
   settings-ui:
     build:
       context: ./apps/settings
