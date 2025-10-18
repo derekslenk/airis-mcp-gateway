@@ -345,6 +345,54 @@ export default function MCPDashboard() {
   const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [configModalServer, setConfigModalServer] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load saved secrets from database on mount
+  useEffect(() => {
+    const loadSavedSecrets = async () => {
+      try {
+        const response = await fetch('http://localhost:9000/api/v1/secrets/');
+        if (!response.ok) {
+          console.error('Failed to load secrets');
+          setIsLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        const savedSecrets = data.secrets || [];
+
+        // Group secrets by server_name
+        const secretsByServer: Record<string, string[]> = {};
+        savedSecrets.forEach((secret: any) => {
+          if (!secretsByServer[secret.server_name]) {
+            secretsByServer[secret.server_name] = [];
+          }
+          secretsByServer[secret.server_name].push(secret.key_name);
+        });
+
+        // Update servers with saved configuration status
+        setServers(prev => prev.map(server => {
+          const hasSecrets = secretsByServer[server.id];
+          if (hasSecrets && hasSecrets.length > 0) {
+            return {
+              ...server,
+              apiKey: 'configured',
+              enabled: true,
+              status: 'connected' as const
+            };
+          }
+          return server;
+        }));
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading secrets:', error);
+        setIsLoading(false);
+      }
+    };
+
+    loadSavedSecrets();
+  }, []);
 
   const toggleServer = (id: string) => {
     setServers(prev => prev.map(server =>
