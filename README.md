@@ -12,8 +12,34 @@
 
 ## 🚀 Quick Install
 
+### Method 1: npm (Recommended)
+
 ```bash
-git clone https://github.com/kazukinakai/airis-mcp-gateway.git ~/github/airis-mcp-gateway
+# Install globally
+npm install -g @agiletec/airis-mcp-gateway
+
+# Or use npx (no installation required)
+npx @agiletec/airis-mcp-gateway install
+```
+
+### Method 2: Homebrew (macOS)
+
+```bash
+brew install agiletec-inc/tap/airis-mcp-gateway
+airis-gateway install
+```
+
+### Method 3: Desktop Extension (Claude Desktop)
+
+1. Download `airis-mcp-gateway.mcpb` from [Releases](https://github.com/agiletec-inc/airis-mcp-gateway/releases)
+2. Open Claude Desktop → Settings → Extensions
+3. Click "Install Extension..." → Select `.mcpb` file
+4. Done! One-click installation with automatic dependency management
+
+### Method 4: Git Clone (Manual)
+
+```bash
+git clone https://github.com/agiletec-inc/airis-mcp-gateway.git ~/github/airis-mcp-gateway
 cd ~/github/airis-mcp-gateway
 make install
 ```
@@ -27,6 +53,30 @@ Automatically installs to ALL editors:
 - ✅ Zed
 
 Restart all editors → 25 MCP servers ready everywhere! 🎉
+
+---
+
+### CLI Commands (After Installation)
+
+```bash
+# Start Gateway
+airis-gateway start
+
+# Stop Gateway
+airis-gateway stop
+
+# Check status
+airis-gateway status
+
+# View logs
+airis-gateway logs -f
+
+# Update to latest
+airis-gateway update
+
+# Uninstall
+airis-gateway uninstall
+```
 
 ---
 

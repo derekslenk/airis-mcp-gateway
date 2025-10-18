@@ -31,5 +31,5 @@ class MCPServerStateResponse(MCPServerStateBase):
 
 class MCPServerStateListResponse(BaseModel):
     """Schema for list of server states"""
-    states: list[MCPServerStateResponse]
+    server_states: list[MCPServerStateResponse]
     total: int

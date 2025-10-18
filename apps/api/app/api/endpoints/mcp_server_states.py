@@ -16,7 +16,7 @@ async def list_server_states(db: AsyncSession = Depends(get_db)):
     """List all server states"""
     states = await crud.get_all_server_states(db)
     return {
-        "states": states,
+        "server_states": states,
         "total": len(states)
     }
 
