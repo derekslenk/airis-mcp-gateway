@@ -52,6 +52,9 @@ class TestMCPServerPersistence:
             assert data["enabled"] == new_state, "API response doesn't match requested state"
 
             # Step 4: Query PostgreSQL directly to verify persistence
+            # Close current transaction and start fresh one to see committed changes
+            await db.commit()
+
             # Need fresh query since server object is from different transaction
             fresh_server = await crud.get_server_by_name(db, server_name)
             assert fresh_server.enabled == new_state, f"Database state doesn't match API response: DB={fresh_server.enabled}, expected={new_state}"
@@ -66,6 +69,9 @@ class TestMCPServerPersistence:
             assert data["enabled"] == initial_state, "Second toggle failed"
 
             # Step 6: Verify PostgreSQL reflects the change
+            # Close current transaction and start fresh one to see committed changes
+            await db.commit()
+
             # Need fresh query since server object is from different transaction
             fresh_server2 = await crud.get_server_by_name(db, server_name)
             assert fresh_server2.enabled == initial_state, f"Database state not updated after second toggle: DB={fresh_server2.enabled}, expected={initial_state}"
@@ -124,8 +130,12 @@ class TestMCPServerPersistence:
             assert before_state["enabled"] is True
 
             # Verify persistence through direct database query
-            await db.refresh(server)
-            assert server.enabled is True, "Server state not persisted in database"
+            # Close current transaction and start fresh one to see committed changes
+            await db.commit()
+
+            # Need fresh query since server object is from different transaction
+            fresh_server = await crud.get_server_by_name(db, server_name)
+            assert fresh_server.enabled is True, "Server state not persisted in database"
 
     async def test_multiple_toggles_maintain_consistency(self, db: AsyncSession):
         """
@@ -153,9 +163,10 @@ class TestMCPServerPersistence:
                 assert response.status_code == 200
 
                 # Verify database was updated
-                await db.refresh(server)
-                assert server.enabled == new_state, \
-                    f"Toggle {i+1}: Expected {new_state}, got {server.enabled}"
+                # Need fresh query since server object is from different transaction
+                fresh_server = await crud.get_server_by_name(db, server_name)
+                assert fresh_server.enabled == new_state, \
+                    f"Toggle {i+1}: Expected {new_state}, got {fresh_server.enabled}"
 
     async def test_enabled_state_survives_migration(self, db: AsyncSession):
         """
