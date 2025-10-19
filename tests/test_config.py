@@ -68,6 +68,8 @@ def test_gateway_mcp_json_valid():
 
     gateway_cfg = servers["airis-mcp-gateway"]
     assert "url" in gateway_cfg, "Gateway URL not configured"
-    assert gateway_cfg["url"] == "http://localhost:9090/sse", f"Unexpected Gateway URL: {gateway_cfg['url']}"
+    # API Proxy with OpenMCP Schema Partitioning (75-90% token reduction)
+    # Editor → API Proxy (localhost:9000) → MCP Gateway (mcp-gateway:9090)
+    assert gateway_cfg["url"] == "http://localhost:9000/api/v1/mcp/sse", f"Unexpected Gateway URL: {gateway_cfg['url']}"
 
     print(f"\n✅ Gateway URL: {gateway_cfg['url']}")

@@ -54,6 +54,8 @@ class TestMCPServerPersistence:
             # Step 4: Query PostgreSQL directly to verify persistence
             # Close current transaction and start fresh one to see committed changes
             await db.commit()
+            # Expire all cached objects to force fresh query
+            db.expire_all()
 
             # Need fresh query since server object is from different transaction
             fresh_server = await crud.get_server_by_name(db, server_name)
@@ -71,6 +73,8 @@ class TestMCPServerPersistence:
             # Step 6: Verify PostgreSQL reflects the change
             # Close current transaction and start fresh one to see committed changes
             await db.commit()
+            # Expire all cached objects to force fresh query
+            db.expire_all()
 
             # Need fresh query since server object is from different transaction
             fresh_server2 = await crud.get_server_by_name(db, server_name)
@@ -132,6 +136,8 @@ class TestMCPServerPersistence:
             # Verify persistence through direct database query
             # Close current transaction and start fresh one to see committed changes
             await db.commit()
+            # Expire all cached objects to force fresh query
+            db.expire_all()
 
             # Need fresh query since server object is from different transaction
             fresh_server = await crud.get_server_by_name(db, server_name)
@@ -163,6 +169,11 @@ class TestMCPServerPersistence:
                 assert response.status_code == 200
 
                 # Verify database was updated
+                # Close current transaction and start fresh one to see committed changes
+                await db.commit()
+                # Expire all cached objects to force fresh query
+                db.expire_all()
+
                 # Need fresh query since server object is from different transaction
                 fresh_server = await crud.get_server_by_name(db, server_name)
                 assert fresh_server.enabled == new_state, \
