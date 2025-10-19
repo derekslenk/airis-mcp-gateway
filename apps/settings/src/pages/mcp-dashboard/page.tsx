@@ -70,12 +70,12 @@ export default function MCPDashboard() {
           const hasSecrets = secretsByServer[server.id]?.length > 0;
           const hasState = server.id in statesByServer;
 
-          // Determine enabled state: persisted toggle > has secrets > default (recommended)
-          let enabled = server.recommended;
+          // Determine enabled state: DB state (highest priority) > default (recommended)
+          // Note: Don't auto-enable based on secrets, user must explicitly toggle
+          let enabled = server.recommended; // Default
           if (hasState) {
+            // DB state has highest priority - always use it
             enabled = statesByServer[server.id];
-          } else if (hasSecrets && !server.apiKeyRequired) {
-            enabled = true;
           }
 
           return {
@@ -245,6 +245,13 @@ export default function MCPDashboard() {
         throw new Error(error.detail || 'Failed to save API key');
       }
 
+      // Save enabled state to DB
+      await fetch(`http://localhost:9000/api/v1/server-states/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: true })
+      });
+
       // Update local state
       setServers(prev => prev.map(server =>
         server.id === id
@@ -294,6 +301,13 @@ export default function MCPDashboard() {
           throw new Error(error.detail || `Failed to save ${keyName}`);
         }
       }
+
+      // Save enabled state to DB
+      await fetch(`http://localhost:9000/api/v1/server-states/${serverId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: true })
+      });
 
       // Update local state
       setServers(prev => prev.map(server =>

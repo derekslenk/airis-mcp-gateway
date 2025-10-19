@@ -5,12 +5,14 @@ Tests verify that UI state changes (enabled/disabled) are permanently
 persisted to PostgreSQL database and survive container restarts.
 """
 import pytest
-from httpx import AsyncClient, ASGITransport
+import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.main import app
-from app.core.database import get_db
+from app.core.database import AsyncSessionLocal
 from app.crud import mcp_server as crud
+
+# API base URL (container internal)
+API_BASE_URL = "http://localhost:8000"
 
 
 @pytest.mark.asyncio
@@ -198,6 +200,5 @@ async def async_client():
 @pytest.fixture(scope="function")
 async def db():
     """Async database session for direct PostgreSQL queries."""
-    async for session in get_db():
+    async with AsyncSessionLocal() as session:
         yield session
-        break
