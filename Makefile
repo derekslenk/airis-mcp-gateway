@@ -386,25 +386,95 @@ verify-claude: ## Verify Claude Code installation
 # ========== Installation ==========
 
 .PHONY: install
-install: ## Install AIRIS Gateway to ALL editors (Claude Desktop, Cursor, Zed, etc.)
+install: ## Install AIRIS Gateway (imports existing IDE configs automatically)
 	@echo "$(BLUE)🌉 Installing AIRIS Gateway...$(NC)"
+	@echo ""
+	@echo "$(YELLOW)📥 Step 1: Importing existing IDE configurations...$(NC)"
+	@python3 scripts/import_existing_configs.py || true
+	@echo ""
+	@echo "$(YELLOW)🚀 Step 2: Starting Gateway...$(NC)"
 	@$(MAKE) up
 	@echo "$(YELLOW)⏳ Waiting for Gateway to become healthy (max 60s)...$(NC)"
 	@timeout 60 sh -c 'until docker inspect --format "{{.State.Health.Status}}" airis-mcp-gateway 2>/dev/null | grep -q "healthy"; do printf "."; sleep 1; done' || (echo "$(RED)❌ Gateway failed to become healthy$(NC)"; exit 1)
 	@echo ""
 	@echo "$(GREEN)✅ Gateway healthy$(NC)"
 	@echo ""
+	@echo "$(YELLOW)📝 Step 3: Registering with editors...$(NC)"
 	@python3 scripts/install_all_editors.py install
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "$(GREEN)🎉 Installation complete!$(NC)"
+	@echo ""
+	@echo "$(BLUE)What was imported:$(NC)"
+	@cat /tmp/airis_import_summary.txt 2>/dev/null | grep -A 20 "Found MCP Servers" || echo "  No existing configs found (fresh install)"
+	@echo ""
 	@echo "$(BLUE)Next Steps:$(NC)"
 	@echo "  1. $(YELLOW)Restart ALL editors$(NC) (Claude Desktop, Cursor, Zed, etc.)"
-	@echo "  2. Test MCP tools in any editor - all share same 25 servers!"
+	@echo "  2. Test MCP tools - all share unified Gateway!"
 	@echo ""
 	@echo "$(BLUE)Access URLs:$(NC)"
 	@echo "  Gateway:     http://localhost:$${GATEWAY_PORT}"
 	@echo "  Settings UI: http://localhost:$${UI_PORT}"
 	@echo "  API Docs:    http://localhost:$${API_PORT}/docs"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+.PHONY: install-dev
+install-dev: ## Install with UI/API (development mode, imports existing configs)
+	@echo "$(BLUE)🔧 Installing AIRIS Gateway (Development Mode)...$(NC)"
+	@echo "$(GREEN)   ✅ Gateway + Settings UI + FastAPI$(NC)"
+	@echo ""
+	@echo "$(YELLOW)📥 Step 1: Importing existing IDE configurations...$(NC)"
+	@python3 scripts/import_existing_configs.py || true
+	@echo ""
+	@echo "$(YELLOW)🚀 Step 2: Starting all services...$(NC)"
+	@$(MAKE) up
+	@echo "$(YELLOW)⏳ Waiting for all services (max 60s)...$(NC)"
+	@timeout 60 sh -c 'until docker compose ps | grep -q "healthy.*healthy.*healthy"; do printf "."; sleep 1; done' || (echo "$(YELLOW)⚠️  Some services might not be healthy yet$(NC)")
+	@echo ""
+	@echo "$(GREEN)✅ Services started$(NC)"
+	@echo ""
+	@echo "$(YELLOW)📝 Step 3: Registering with editors...$(NC)"
+	@python3 scripts/install_all_editors.py install
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "$(GREEN)🎉 Development Mode Active$(NC)"
+	@echo ""
+	@echo "$(BLUE)What was imported:$(NC)"
+	@cat /tmp/airis_import_summary.txt 2>/dev/null | grep -A 20 "Found MCP Servers" || echo "  No existing configs found (fresh install)"
+	@echo ""
+	@echo "$(GREEN)Web Dashboard:$(NC)"
+	@echo "  🎨 Settings UI: http://localhost:$${UI_PORT}"
+	@echo "  📊 API Docs:    http://localhost:$${API_PORT}/docs"
+	@echo "  🔗 Gateway:     http://localhost:$${GATEWAY_PORT}"
+	@echo ""
+	@echo "$(BLUE)Features:$(NC)"
+	@echo "  - Toggle MCP servers ON/OFF via UI"
+	@echo "  - Manage API keys with encryption"
+	@echo "  - Real-time server status monitoring"
+	@echo "  - Gateway restart API endpoint"
+	@echo ""
+	@echo "$(BLUE)Next Steps:$(NC)"
+	@echo "  1. $(YELLOW)Restart ALL editors$(NC)"
+	@echo "  2. Open http://localhost:$${UI_PORT} to customize"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+.PHONY: install-import
+install-import: ## Import existing IDE MCP configs and merge into AIRIS Gateway
+	@echo "$(BLUE)📥 Importing existing IDE configurations...$(NC)"
+	@echo ""
+	@python3 scripts/import_existing_configs.py
+	@echo ""
+	@echo "$(GREEN)✅ Import complete$(NC)"
+	@echo "$(BLUE)🌉 Installing AIRIS Gateway with merged configuration...$(NC)"
+	@$(MAKE) install
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "$(GREEN)🎉 Your existing MCP servers are now unified!$(NC)"
+	@echo ""
+	@echo "$(BLUE)What was imported:$(NC)"
+	@cat /tmp/airis_import_summary.txt 2>/dev/null || echo "  (See import log above)"
+	@echo ""
+	@echo "$(BLUE)Next: Restart editors and enjoy unified Gateway!$(NC)"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 .PHONY: uninstall

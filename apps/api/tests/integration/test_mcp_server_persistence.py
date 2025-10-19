@@ -132,7 +132,7 @@ class TestMCPServerPersistence:
                 fresh_server = await crud.get_server_by_name(fresh_db, server_name)
                 assert fresh_server.enabled is True, "Server state not persisted in database"
 
-    async def test_multiple_toggles_maintain_consistency(self, db: AsyncSession):
+    async def test_multiple_toggles_maintain_consistency(self):
         """
         Test multiple toggles maintain database consistency.
 
@@ -142,11 +142,12 @@ class TestMCPServerPersistence:
         async with httpx.AsyncClient(base_url=API_BASE_URL) as client:
             server_name = "figma"
 
-            # Get server
-            server = await crud.get_server_by_name(db, server_name)
-            assert server is not None
-            server_id = server.id
-            initial_state = server.enabled
+            # Get server with NEW session
+            async with AsyncSessionLocal() as db:
+                server = await crud.get_server_by_name(db, server_name)
+                assert server is not None
+                server_id = server.id
+                initial_state = server.enabled
 
             # Perform 3 toggles
             for i in range(3):
@@ -157,18 +158,13 @@ class TestMCPServerPersistence:
                 )
                 assert response.status_code == 200
 
-                # Verify database was updated
-                # Close current transaction and start fresh one to see committed changes
-                await db.commit()
-                # Expire all cached objects to force fresh query
-                db.expire_all()
+                # Verify database was updated with NEW session
+                async with AsyncSessionLocal() as fresh_db:
+                    fresh_server = await crud.get_server_by_name(fresh_db, server_name)
+                    assert fresh_server.enabled == new_state, \
+                        f"Toggle {i+1}: Expected {new_state}, got {fresh_server.enabled}"
 
-                # Need fresh query since server object is from different transaction
-                fresh_server = await crud.get_server_by_name(db, server_name)
-                assert fresh_server.enabled == new_state, \
-                    f"Toggle {i+1}: Expected {new_state}, got {fresh_server.enabled}"
-
-    async def test_enabled_state_survives_migration(self, db: AsyncSession):
+    async def test_enabled_state_survives_migration(self):
         """
         Test that enabled state is preserved during Alembic migrations.
 
@@ -180,27 +176,18 @@ class TestMCPServerPersistence:
         - Existing rows preserve their enabled state
         - No data loss during schema updates
         """
-        # Query all servers
-        servers = await crud.get_servers(db, skip=0, limit=100)
-        assert len(servers) > 0, "No servers found in database"
+        # Query all servers with NEW session
+        async with AsyncSessionLocal() as db:
+            servers = await crud.get_servers(db, skip=0, limit=100)
+            assert len(servers) > 0, "No servers found in database"
 
-        # Verify each server has a boolean enabled state (not None)
-        for server in servers:
-            assert isinstance(server.enabled, bool), \
-                f"Server {server.name} has invalid enabled state: {server.enabled}"
+            # Verify each server has a boolean enabled state (not None)
+            for server in servers:
+                assert isinstance(server.enabled, bool), \
+                    f"Server {server.name} has invalid enabled state: {server.enabled}"
 
-            # Verify required fields exist (migration integrity)
-            assert server.name is not None
-            assert server.command is not None
-            assert server.created_at is not None
-            assert server.updated_at is not None
-
-
-@pytest.fixture(scope="function")
-async def db():
-    """Async database session for direct PostgreSQL queries."""
-    session = AsyncSessionLocal()
-    try:
-        yield session
-    finally:
-        await session.close()
+                # Verify required fields exist (migration integrity)
+                assert server.name is not None
+                assert server.command is not None
+                assert server.created_at is not None
+                assert server.updated_at is not None

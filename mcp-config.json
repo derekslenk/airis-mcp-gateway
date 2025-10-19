@@ -8,14 +8,12 @@
   },
   "mcpServers": {
     "__comment_profiles": "=== PROFILES (see profiles/ directory) ===",
-    "__comment_profiles_recommended": "Recommended: filesystem, context7, serena, mindbase (長期プロジェクト向け)",
-    "__comment_profiles_minimal": "Minimal: filesystem, context7 (軽量・高速)",
-    "__comment_profiles_custom": "Custom: 選択的有効化（UI or profiles/custom.json）",
-    "__comment_profiles_switch": "切り替え: make profile-recommended | make profile-minimal",
-
+    "__comment_profiles_recommended": "Recommended: filesystem, context7, serena, mindbase (\u9577\u671f\u30d7\u30ed\u30b8\u30a7\u30af\u30c8\u5411\u3051)",
+    "__comment_profiles_minimal": "Minimal: filesystem, context7 (\u8efd\u91cf\u30fb\u9ad8\u901f)",
+    "__comment_profiles_custom": "Custom: \u9078\u629e\u7684\u6709\u52b9\u5316\uff08UI or profiles/custom.json\uff09",
+    "__comment_profiles_switch": "\u5207\u308a\u66ff\u3048: make profile-recommended | make profile-minimal",
     "__comment_builtin": "=== BUILT-IN SERVERS (enabled via --servers flag) ===",
     "__comment_builtin_list": "time, fetch, git, memory, sequentialthinking",
-
     "__comment_gateway_npx": "=== GATEWAY NPX SERVERS (no auth required) ===",
     "filesystem": {
       "command": "npx",
@@ -27,7 +25,10 @@
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
     },
     "serena": {
       "command": "docker",
@@ -35,22 +36,36 @@
         "run",
         "--rm",
         "-i",
-        "--network", "airis-mcp-gateway_default",
-        "-v", "/Users/kazuki/github:/workspaces/projects:rw",
+        "--network",
+        "airis-mcp-gateway_default",
+        "-v",
+        "/Users/kazuki/github:/workspaces/projects:rw",
         "ghcr.io/oraios/serena:latest",
-        "serena", "start-mcp-server",
-        "--context", "ide-assistant",
-        "--enable-web-dashboard", "false",
-        "--enable-gui-log-window", "false"
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--enable-web-dashboard",
+        "false",
+        "--enable-gui-log-window",
+        "false"
       ]
     },
     "puppeteer": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
     },
     "sqlite": {
       "command": "npx",
-      "args": ["-y", "mcp-server-sqlite", "--db-path", "/app/data.db"]
+      "args": [
+        "-y",
+        "mcp-server-sqlite",
+        "--db-path",
+        "/app/data.db"
+      ]
     },
     "mindbase": {
       "command": "docker",
@@ -58,12 +73,17 @@
         "run",
         "--rm",
         "-i",
-        "--network", "airis-mcp-gateway_default",
-        "-e", "MINDBASE_API_URL=http://host.docker.internal:18002",
-        "-v", "/Users/kazuki/github/airis-mcp-gateway/servers/mindbase:/app:ro",
-        "-w", "/app",
+        "--network",
+        "airis-mcp-gateway_default",
+        "-e",
+        "MINDBASE_API_URL=http://host.docker.internal:18002",
+        "-v",
+        "/Users/kazuki/github/airis-mcp-gateway/servers/mindbase:/app:ro",
+        "-w",
+        "/app",
         "node:24-alpine",
-        "node", "dist/index.js"
+        "node",
+        "dist/index.js"
       ]
     },
     "self-management": {
@@ -72,30 +92,38 @@
         "run",
         "--rm",
         "-i",
-        "--network", "airis-mcp-gateway_default",
-        "-e", "GATEWAY_API_URL=http://host.docker.internal:9090/api",
-        "-v", "/Users/kazuki/github/airis-mcp-gateway/servers/self-management:/app:ro",
-        "-w", "/app",
+        "--network",
+        "airis-mcp-gateway_default",
+        "-e",
+        "GATEWAY_API_URL=http://host.docker.internal:9090/api",
+        "-v",
+        "/Users/kazuki/github/airis-mcp-gateway/servers/self-management:/app:ro",
+        "-w",
+        "/app",
         "node:24-alpine",
-        "node", "dist/index.js"
+        "node",
+        "dist/index.js"
       ]
     },
-
     "__comment_disabled": "=== DISABLED (auth required - enable via frontend UI) ===",
-
     "__comment_ai_search": "=== AI SEARCH & RESEARCH ===",
     "tavily": {
       "command": "npx",
-      "args": ["-y", "@tavily/mcp-server"],
+      "args": [
+        "-y",
+        "@tavily/mcp-server"
+      ],
       "env": {
         "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
     },
-
     "__comment_database": "=== DATABASE & BACKEND ===",
     "__disabled_supabase": {
       "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase"],
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase"
+      ],
       "env": {
         "SUPABASE_URL": "${SUPABASE_URL}",
         "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
@@ -103,7 +131,10 @@
     },
     "__disabled_mongodb": {
       "command": "npx",
-      "args": ["-y", "@mongodb/mcp-server"],
+      "args": [
+        "-y",
+        "@mongodb/mcp-server"
+      ],
       "env": {
         "MONGODB_CONNECTION_STRING": "${MONGODB_CONNECTION_STRING}"
       }
@@ -117,18 +148,23 @@
         "${POSTGRES_CONNECTION_STRING}"
       ]
     },
-
     "__comment_productivity": "=== PRODUCTIVITY & COLLABORATION ===",
     "__disabled_notion": {
       "command": "npx",
-      "args": ["-y", "@notionhq/mcp-server"],
+      "args": [
+        "-y",
+        "@notionhq/mcp-server"
+      ],
       "env": {
         "NOTION_API_KEY": "${NOTION_API_KEY}"
       }
     },
     "__disabled_slack": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-slack"
+      ],
       "env": {
         "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
         "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
@@ -136,12 +172,14 @@
     },
     "figma": {
       "command": "npx",
-      "args": ["-y", "@hapins/figma-mcp"],
+      "args": [
+        "-y",
+        "@hapins/figma-mcp"
+      ],
       "env": {
         "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
       }
     },
-
     "__comment_payment_api": "=== PAYMENT & API INTEGRATIONS ===",
     "stripe": {
       "command": "bash",
@@ -160,29 +198,86 @@
         "TWILIO_ACCOUNT_SID=$(cat /run/secrets/twilio_sid 2>/dev/null || echo ${TWILIO_ACCOUNT_SID}) TWILIO_API_KEY=$(cat /run/secrets/twilio_key 2>/dev/null || echo ${TWILIO_API_KEY}) TWILIO_API_SECRET=$(cat /run/secrets/twilio_secret 2>/dev/null || echo ${TWILIO_API_SECRET}) npx -y @twilio-alpha/mcp"
       ]
     },
-
     "__comment_dev_tools": "=== DEVELOPMENT TOOLS ===",
     "__disabled_github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
       }
     },
     "__disabled_brave-search": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
       "env": {
         "BRAVE_API_KEY": "${BRAVE_API_KEY}"
       }
     },
     "__disabled_sentry": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sentry"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sentry"
+      ],
       "env": {
         "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}",
         "SENTRY_ORG": "${SENTRY_ORG}"
       }
+    },
+    "__disabled_fetch": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/fetch"
+      ]
+    },
+    "__disabled_git": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--mount",
+        "type=bind,src=/Users/kazuki/github,dst=/Users/kazuki/github",
+        "mcp/git"
+      ]
+    },
+    "__disabled_memory": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "claude-memory:/app/dist",
+        "mcp/memory"
+      ]
+    },
+    "__disabled_sequentialthinking": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/sequentialthinking"
+      ]
+    },
+    "__disabled_time": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/time"
+      ]
     }
   },
   "log": {

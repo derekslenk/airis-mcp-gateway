@@ -12,7 +12,36 @@
 
 ## 🚀 Quick Install
 
-### Method 1: npm (Recommended)
+### Method 1: Homebrew (Recommended for macOS)
+
+```bash
+# Add tap (first time only)
+brew tap agiletec-inc/tap
+
+# Install package
+brew install airis-mcp-gateway
+
+# Setup Gateway (automatically imports existing IDE configs!)
+airis-gateway install
+
+# Or: Development mode with UI/API
+airis-gateway install dev
+```
+
+**✨ What `airis-gateway install` does:**
+1. 📥 **Auto-imports** existing MCP configs from Claude Desktop, Cursor, Windsurf, Zed
+2. 🔄 **Merges** all your MCP servers into unified Gateway (deduplication)
+3. 🌉 **Registers** Gateway with all installed editors
+4. 🎉 **Done!** Restart editors → All MCP servers unified
+
+**Why Homebrew?**
+- ✅ Dependency auto-resolution (PostgreSQL, Ollama)
+- ✅ macOS standard package manager
+- ✅ Easy updates with `brew upgrade`
+- ✅ Zero environment pollution
+- ✅ **Auto-import** of existing IDE configs
+
+### Method 2: npm
 
 ```bash
 # Install globally
@@ -22,17 +51,6 @@ npm install -g @agiletec/airis-mcp-gateway
 npx @agiletec/airis-mcp-gateway install
 ```
 
-### Method 2: Homebrew (macOS)
-
-```bash
-# Add tap (first time only)
-brew tap agiletec-inc/tap
-
-# Install
-brew install airis-mcp-gateway
-airis-gateway install
-```
-
 ### Method 3: Desktop Extension (Claude Desktop)
 
 1. Download `airis-mcp-gateway.mcpb` from [Releases](https://github.com/agiletec-inc/airis-mcp-gateway/releases)
@@ -40,23 +58,30 @@ airis-gateway install
 3. Click "Install Extension..." → Select `.mcpb` file
 4. Done! One-click installation with automatic dependency management
 
-### Method 4: Git Clone (Manual)
+### Method 4: Git Clone (Development)
 
 ```bash
 git clone https://github.com/agiletec-inc/airis-mcp-gateway.git ~/github/airis-mcp-gateway
 cd ~/github/airis-mcp-gateway
+
+# Install (auto-imports existing IDE configs)
 make install
+
+# Or: Development mode with UI/API
+make install-dev
 ```
 
-**That's it!**
+**What `make install` does:**
+1. 📥 Imports existing MCP configs from all installed IDEs
+2. 🚀 Starts Gateway + PostgreSQL
+3. 🌉 Registers with Claude Code, Claude Desktop, Cursor, Zed
+4. ✅ Done! Restart editors → Unified Gateway
 
-Automatically installs to ALL editors:
-- ✅ Claude Code
-- ✅ Claude Desktop
-- ✅ Cursor
-- ✅ Zed
-
-Restart all editors → 25 MCP servers ready everywhere! 🎉
+**Development mode extras:**
+- 🎨 Settings UI at http://localhost:5173
+- 📊 API Docs at http://localhost:9000/docs
+- 🔐 Encrypted API key management
+- 🎛️ Server ON/OFF toggles
 
 ---
 
