@@ -19,9 +19,7 @@ API_BASE_URL = "http://localhost:8000"
 class TestMCPServerPersistence:
     """Test PostgreSQL persistence of MCP server state."""
 
-    async def test_toggle_server_persists_enabled_state(
-        self, async_client: AsyncClient, db: AsyncSession
-    ):
+    async def test_toggle_server_persists_enabled_state(self, db: AsyncSession):
         """
         Test that toggling a server ON persists to PostgreSQL.
 
@@ -33,68 +31,66 @@ class TestMCPServerPersistence:
         5. Toggle again
         6. Verify both API and PostgreSQL reflect the change
         """
-        # Step 1: Get Figma server
-        server_name = "figma"
-        server = await crud.get_server_by_name(db, server_name)
-        assert server is not None, f"Server {server_name} not found in database"
-        server_id = server.id
-        initial_state = server.enabled
+        async with httpx.AsyncClient(base_url=API_BASE_URL) as client:
+            # Step 1: Get Figma server
+            server_name = "figma"
+            server = await crud.get_server_by_name(db, server_name)
+            assert server is not None, f"Server {server_name} not found in database"
+            server_id = server.id
+            initial_state = server.enabled
 
-        # Step 2: Toggle server (flip state)
-        new_state = not initial_state
-        response = await async_client.post(
-            f"/api/v1/mcp/servers/{server_id}/toggle",
-            json={"enabled": new_state}
-        )
-        assert response.status_code == 200
-        data = response.json()
+            # Step 2: Toggle server (flip state)
+            new_state = not initial_state
+            response = await client.post(
+                f"/api/v1/mcp/servers/{server_id}/toggle",
+                json={"enabled": new_state}
+            )
+            assert response.status_code == 200
+            data = response.json()
 
-        # Step 3: Verify API returns new enabled state
-        assert data["enabled"] == new_state, "API response doesn't match requested state"
+            # Step 3: Verify API returns new enabled state
+            assert data["enabled"] == new_state, "API response doesn't match requested state"
 
-        # Step 4: Query PostgreSQL directly to verify persistence
-        await db.refresh(server)
-        assert server.enabled == new_state, "Database state doesn't match API response"
+            # Step 4: Query PostgreSQL directly to verify persistence
+            await db.refresh(server)
+            assert server.enabled == new_state, "Database state doesn't match API response"
 
-        # Step 5: Toggle again (back to original)
-        response = await async_client.post(
-            f"/api/v1/mcp/servers/{server_id}/toggle",
-            json={"enabled": initial_state}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["enabled"] == initial_state, "Second toggle failed"
+            # Step 5: Toggle again (back to original)
+            response = await client.post(
+                f"/api/v1/mcp/servers/{server_id}/toggle",
+                json={"enabled": initial_state}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["enabled"] == initial_state, "Second toggle failed"
 
-        # Step 6: Verify PostgreSQL reflects the change
-        await db.refresh(server)
-        assert server.enabled == initial_state, "Database state not updated after second toggle"
+            # Step 6: Verify PostgreSQL reflects the change
+            await db.refresh(server)
+            assert server.enabled == initial_state, "Database state not updated after second toggle"
 
-    async def test_server_list_reflects_database_state(
-        self, async_client: AsyncClient, db: AsyncSession
-    ):
+    async def test_server_list_reflects_database_state(self, db: AsyncSession):
         """
         Test that GET /servers endpoint returns current PostgreSQL state.
 
         This ensures the UI always shows the persisted state, not a cached or
         hardcoded state.
         """
-        # Get all servers from API
-        response = await async_client.get("/api/v1/mcp/servers/")
-        assert response.status_code == 200
-        servers_from_api = response.json()
+        async with httpx.AsyncClient(base_url=API_BASE_URL) as client:
+            # Get all servers from API
+            response = await client.get("/api/v1/mcp/servers/")
+            assert response.status_code == 200
+            servers_from_api = response.json()
 
-        # Verify each server's state matches PostgreSQL
-        for api_server in servers_from_api:
-            server_name = api_server["name"]
-            db_server = await crud.get_server_by_name(db, server_name)
+            # Verify each server's state matches PostgreSQL
+            for api_server in servers_from_api:
+                server_name = api_server["name"]
+                db_server = await crud.get_server_by_name(db, server_name)
 
-            assert db_server is not None, f"Server {server_name} in API but not in DB"
-            assert db_server.enabled == api_server["enabled"], \
-                f"Server {server_name} enabled state mismatch: DB={db_server.enabled}, API={api_server['enabled']}"
+                assert db_server is not None, f"Server {server_name} in API but not in DB"
+                assert db_server.enabled == api_server["enabled"], \
+                    f"Server {server_name} enabled state mismatch: DB={db_server.enabled}, API={api_server['enabled']}"
 
-    async def test_restart_preserves_enabled_state(
-        self, async_client: AsyncClient, db: AsyncSession
-    ):
+    async def test_restart_preserves_enabled_state(self, db: AsyncSession):
         """
         Test that server state survives application/container restart.
 
@@ -103,61 +99,61 @@ class TestMCPServerPersistence:
         2. Set to enabled=true if not already
         3. Verify persistence through direct database query
         """
-        server_name = "figma"
+        async with httpx.AsyncClient(base_url=API_BASE_URL) as client:
+            server_name = "figma"
 
-        # Get server by name
-        server = await crud.get_server_by_name(db, server_name)
-        assert server is not None, f"Server {server_name} not found"
-        server_id = server.id
+            # Get server by name
+            server = await crud.get_server_by_name(db, server_name)
+            assert server is not None, f"Server {server_name} not found"
+            server_id = server.id
 
-        # Ensure server is enabled
-        if not server.enabled:
-            response = await async_client.post(
-                f"/api/v1/mcp/servers/{server_id}/toggle",
-                json={"enabled": True}
-            )
+            # Ensure server is enabled
+            if not server.enabled:
+                response = await client.post(
+                    f"/api/v1/mcp/servers/{server_id}/toggle",
+                    json={"enabled": True}
+                )
+                assert response.status_code == 200
+
+            # Verify current state via API
+            response = await client.get(f"/api/v1/mcp/servers/{server_id}")
             assert response.status_code == 200
+            before_state = response.json()
+            assert before_state["enabled"] is True
 
-        # Verify current state via API
-        response = await async_client.get(f"/api/v1/mcp/servers/{server_id}")
-        assert response.status_code == 200
-        before_state = response.json()
-        assert before_state["enabled"] is True
+            # Verify persistence through direct database query
+            await db.refresh(server)
+            assert server.enabled is True, "Server state not persisted in database"
 
-        # Verify persistence through direct database query
-        await db.refresh(server)
-        assert server.enabled is True, "Server state not persisted in database"
-
-    async def test_multiple_toggles_maintain_consistency(
-        self, async_client: AsyncClient, db: AsyncSession
-    ):
+    async def test_multiple_toggles_maintain_consistency(self, db: AsyncSession):
         """
         Test multiple toggles maintain database consistency.
 
         Scenario: User toggles server multiple times.
         Result: Each toggle should properly update PostgreSQL.
         """
-        server_name = "figma"
+        async with httpx.AsyncClient(base_url=API_BASE_URL) as client:
+            server_name = "figma"
 
-        # Get server
-        server = await crud.get_server_by_name(db, server_name)
-        assert server is not None
-        server_id = server.id
-        initial_state = server.enabled
+            # Get server
+            server = await crud.get_server_by_name(db, server_name)
+            assert server is not None
+            server_id = server.id
+            initial_state = server.enabled
 
-        # Perform 3 toggles
-        for i in range(3):
-            new_state = not ((i % 2 == 0) == initial_state)
-            response = await async_client.post(
-                f"/api/v1/mcp/servers/{server_id}/toggle",
-                json={"enabled": new_state}
-            )
-            assert response.status_code == 200
+            # Perform 3 toggles
+            for i in range(3):
+                new_state = not ((i % 2 == 0) == initial_state)
+                response = await client.post(
+                    f"/api/v1/mcp/servers/{server_id}/toggle",
+                    json={"enabled": new_state}
+                )
+                assert response.status_code == 200
 
-            # Verify database was updated
-            await db.refresh(server)
-            assert server.enabled == new_state, \
-                f"Toggle {i+1}: Expected {new_state}, got {server.enabled}"
+                # Verify database was updated
+                await db.refresh(server)
+                assert server.enabled == new_state, \
+                    f"Toggle {i+1}: Expected {new_state}, got {server.enabled}"
 
     async def test_enabled_state_survives_migration(self, db: AsyncSession):
         """
@@ -188,17 +184,14 @@ class TestMCPServerPersistence:
 
 
 @pytest.fixture(scope="function")
-async def async_client():
-    """Async HTTP client for testing API endpoints."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as client:
-        yield client
-
-
-@pytest.fixture(scope="function")
 async def db():
     """Async database session for direct PostgreSQL queries."""
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
