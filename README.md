@@ -25,7 +25,11 @@ npx @agiletec/airis-mcp-gateway install
 ### Method 2: Homebrew (macOS)
 
 ```bash
-brew install agiletec-inc/tap/airis-mcp-gateway
+# Add tap (first time only)
+brew tap agiletec-inc/tap
+
+# Install
+brew install airis-mcp-gateway
 airis-gateway install
 ```
 
@@ -92,7 +96,70 @@ Use this if you want to manually configure editors or just run Gateway as a Dock
 
 ## 💡 Why AIRIS MCP Gateway?
 
-### 🎯 Problems It Solves
+### 🆚 docker-mcp vs AIRIS MCP Gateway
+
+| Feature | docker-mcp | AIRIS MCP Gateway |
+|---------|-----------|-------------------|
+| **Docker Engine** | Docker Desktop only | ✅ Docker Desktop + **OrbStack** |
+| **Management UI** | ❌ None (CLI only) | ✅ **Web Dashboard** (http://localhost:5173) |
+| **Server Toggle** | ❌ Manual config edit | ✅ **ON/OFF switches** (real-time) |
+| **API Key Storage** | `.env` files | ✅ **Encrypted PostgreSQL** |
+| **API Management** | ❌ None | ✅ **FastAPI REST API** |
+| **Secret Injection** | Manual environment variables | ✅ **Auto-injection via API** |
+| **Multi-Editor** | Supported | ✅ **Unified config** (symlink) |
+| **Resource Control** | All servers always on | ✅ **Selective activation** (save memory) |
+| **State Persistence** | ❌ None | ✅ **Database-backed** (survives restart) |
+| **Gateway Restart** | Manual `docker compose restart` | ✅ **API endpoint** (`/api/v1/gateway/restart`) |
+| **API Key Validation** | ❌ None | ✅ **Format validation** (Stripe, Tavily, Figma, etc.) |
+| **Server Health** | Basic healthcheck | ✅ **Detailed health monitoring** |
+| **License** | Proprietary | ✅ **MIT** (fully customizable) |
+
+### 🎯 Key Advantages Over docker-mcp
+
+#### 🖥️ OrbStack Support
+- **docker-mcp limitation**: Requires Docker Desktop (proprietary, resource-heavy)
+- **AIRIS solution**: Works with both Docker Desktop AND **OrbStack** (open-source, lightweight)
+- **Benefit**: Freedom to choose your Docker runtime, better performance on macOS
+
+#### 🎛️ Web Dashboard Management
+- **docker-mcp limitation**: No GUI, all changes require manual config file editing
+- **AIRIS solution**: **http://localhost:5173** dashboard with:
+  - ✅ Visual server ON/OFF toggles
+  - ✅ API key configuration with validation
+  - ✅ Real-time status monitoring
+  - ✅ One-click Gateway restart
+- **Benefit**: Non-technical users can manage servers without touching config files
+
+#### 🔐 Enterprise-Grade Secret Management
+- **docker-mcp limitation**: API keys in plaintext `.env` files (Git leak risk)
+- **AIRIS solution**:
+  - ✅ Encrypted PostgreSQL storage
+  - ✅ API-based secret injection
+  - ✅ No plaintext files anywhere
+  - ✅ Format validation before save (prevents invalid keys)
+- **Benefit**: Production-ready security, zero Git leak risk
+
+#### 🎯 Selective Resource Control
+- **docker-mcp limitation**: All configured servers start on launch (wasted resources)
+- **AIRIS solution**:
+  - ✅ Toggle servers ON/OFF via UI
+  - ✅ Database-backed state (persists across restarts)
+  - ✅ Enable only what you need
+- **Benefit**: Save 200-500MB RAM by disabling unused servers
+
+#### 🚀 API-First Architecture
+- **docker-mcp limitation**: No programmatic control
+- **AIRIS solution**:
+  - ✅ FastAPI REST API (`http://localhost:9000`)
+  - ✅ `/api/v1/secrets` - Secret management
+  - ✅ `/api/v1/server-states` - Server state control
+  - ✅ `/api/v1/gateway/restart` - Remote restart
+  - ✅ `/api/v1/mcp-config` - Configuration API
+- **Benefit**: Scriptable, automation-friendly, CI/CD integration
+
+---
+
+### 🎯 Problems Both Solutions Solve
 
 #### ❌ Problem 1: Token Explosion
 - **Massive tool definitions** → IDE loads all tool definitions at startup
@@ -114,7 +181,7 @@ VS Code    → settings.json (completely different)
 
 ---
 
-### ✅ AIRIS MCP Gateway Solutions
+### ✅ AIRIS MCP Gateway Solutions (Shared with docker-mcp)
 
 #### 🌟 Benefit 1: Zero-Token Startup
 - **IDE recognizes only Gateway URL** → Tool definitions not sent (0 tokens)
@@ -126,25 +193,48 @@ VS Code    → settings.json (completely different)
 - **Auto-propagation** → Gateway updates apply instantly to all environments
 - **Editor abstraction** → Completely hides editor-specific format differences
 
-#### 🌟 Benefit 3: Free Customization
-- **MIT License** → Free to modify and use commercially
-- **Add your own servers** → Just add to `mcp-config.json`
-- **Custom server variants** → Freely adjust behavior
-
-#### 🌟 Benefit 4: Zero Host Pollution
+#### 🌟 Benefit 3: Zero Host Pollution
 - **All servers run in Docker containers** → Mac host stays completely clean
 - **No npx/uvx required** → Everything contained in Gateway, no dependency conflicts
 - **Easy cleanup** → `make clean` for complete removal
 
-#### 🌟 Benefit 5: Instant Project Switching
+#### 🌟 Benefit 4: Instant Project Switching
 - **Gateway always running** → Servers remain active when switching projects
 - **Zero downtime** → No interruption to development flow
 - **Unified experience** → Same toolset across all projects
 
-#### 🌟 Benefit 6: Enhanced Security
-- **Docker secrets integration** → API keys encrypted and centrally stored in Docker
-- **No `.env` files** → Eliminates Git leak risk at the root
-- **Runtime injection only** → Avoids plaintext storage
+---
+
+### ✨ AIRIS Unique Advantages (Not in docker-mcp)
+
+#### 🎨 Visual Management Interface
+- **Web Dashboard** → http://localhost:5173 for GUI management
+- **No config file editing** → Toggle servers, configure keys, restart Gateway
+- **Real-time feedback** → Instant validation and status updates
+- **Team-friendly** → Non-developers can manage infrastructure
+
+#### 🔐 Production-Ready Security
+- **Encrypted PostgreSQL storage** → API keys encrypted at rest
+- **No `.env` files** → Eliminates Git leak risk completely
+- **API-based injection** → Secrets fetched from API on Gateway startup
+- **Format validation** → Invalid keys rejected before save (Stripe, Tavily, Figma patterns)
+
+#### 🎯 Intelligent Resource Management
+- **Selective activation** → Toggle servers ON/OFF to save 200-500MB RAM
+- **Database-backed state** → Configuration persists across container restarts
+- **Dynamic scaling** → Enable only what you need, when you need it
+
+#### 🚀 Automation & Integration
+- **FastAPI REST API** → Full programmatic control via HTTP
+- **CI/CD ready** → Script server management, secret rotation
+- **Remote operations** → `/api/v1/gateway/restart`, `/api/v1/server-states`
+- **Monitoring hooks** → Health endpoints for observability
+
+#### 🆓 True Open Source
+- **MIT License** → Free to modify and use commercially (docker-mcp is proprietary)
+- **Add your own servers** → Just add to `mcp-config.json`
+- **Custom variants** → Fork and customize without restrictions
+- **No vendor lock-in** → Complete control over your infrastructure
 
 ---
 
