@@ -52,8 +52,9 @@ class TestMCPServerPersistence:
             assert data["enabled"] == new_state, "API response doesn't match requested state"
 
             # Step 4: Query PostgreSQL directly to verify persistence
-            await db.refresh(server)
-            assert server.enabled == new_state, "Database state doesn't match API response"
+            # Need fresh query since server object is from different transaction
+            fresh_server = await crud.get_server_by_name(db, server_name)
+            assert fresh_server.enabled == new_state, f"Database state doesn't match API response: DB={fresh_server.enabled}, expected={new_state}"
 
             # Step 5: Toggle again (back to original)
             response = await client.post(
@@ -65,8 +66,9 @@ class TestMCPServerPersistence:
             assert data["enabled"] == initial_state, "Second toggle failed"
 
             # Step 6: Verify PostgreSQL reflects the change
-            await db.refresh(server)
-            assert server.enabled == initial_state, "Database state not updated after second toggle"
+            # Need fresh query since server object is from different transaction
+            fresh_server2 = await crud.get_server_by_name(db, server_name)
+            assert fresh_server2.enabled == initial_state, f"Database state not updated after second toggle: DB={fresh_server2.enabled}, expected={initial_state}"
 
     async def test_server_list_reflects_database_state(self, db: AsyncSession):
         """
@@ -186,12 +188,8 @@ class TestMCPServerPersistence:
 @pytest.fixture(scope="function")
 async def db():
     """Async database session for direct PostgreSQL queries."""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+    session = AsyncSessionLocal()
+    try:
+        yield session
+    finally:
+        await session.close()
