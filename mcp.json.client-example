@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "airis-mcp-gateway": {
+      "url": "http://192.168.15.123:9090/sse",
+      "description": "AIRIS MCP Gateway on Debian - All 15+ MCP servers unified (75-90% token reduction via OpenMCP)"
+    }
+  }
+}
